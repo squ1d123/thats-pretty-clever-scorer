@@ -57,12 +57,12 @@ func CreateMainMenu(app fyne.App, window fyne.Window, db *storage.Database, onSc
 	cleanupBtn := widget.NewButton("🧹 Manage Data", func() {
 		onScreenChange("cleanup")
 	})
-	cleanupBtn.Importance = widget.LowImportance
+	cleanupBtn.Importance = widget.MediumImportance
 
 	exitBtn := widget.NewButton("🚪 Exit", func() {
 		app.Quit()
 	})
-	exitBtn.Importance = widget.LowImportance
+	exitBtn.Importance = widget.MediumImportance
 
 	// Create button container with consistent sizing
 	buttons := container.NewVBox(
