@@ -2,13 +2,15 @@ package ui
 
 import (
 	"fmt"
+	"log/slog"
 	"sort"
+
+	"thats-pretty-clever-scorer/internal/storage"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"thats-pretty-clever-scorer/internal/storage"
 )
 
 // createColoredLabel creates a label with importance levels to simulate color emphasis
@@ -41,13 +43,11 @@ func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func())
 	// Load game data
 	game, err := db.GetGameByID(gameID)
 	if err != nil {
+		slog.Error("Error loading game details", "error", err)
 		errorLabel := widget.NewLabel("Error loading game details")
 		backBtn := widget.NewButton("Back", onBack)
 		return container.NewVBox(errorLabel, backBtn)
 	}
-
-	// Create title
-	titleLabel := widget.NewLabelWithStyle("📊 Game Details", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	// Create game metadata
 	dateText := game.CreatedAt.Format("January 2, 2006 at 3:04 PM")
@@ -80,22 +80,29 @@ func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func())
 	}
 
 	// Create button container
-	backBtn := widget.NewButton("← Back to History", onBack)
 	deleteBtn := widget.NewButton("🗑️ Delete Game", func() {
 		showDeleteConfirmation(db, gameID, onBack)
 	})
 	deleteBtn.Importance = widget.DangerImportance
 
-	buttons := container.NewHBox(backBtn, deleteBtn)
+	backToHistoryBtn := widget.NewButton("← Back to History", func() {
+		onBack()
+	})
+	backToHistoryBtn.Importance = widget.MediumImportance
 
-	// Main layout
-	content := container.NewVBox(
-		titleLabel,
-		widget.NewSeparator(),
+	buttons := container.NewHBox(backToHistoryBtn, deleteBtn)
+
+	// Main layout with navigation bar
+	content := container.NewScroll(container.NewVBox(
+		CreateNavigationBar("📊 Game Details", func() {
+			// Navigate to main menu from details screen
+		}),
 		metadataContainer,
+		widget.NewSeparator(),
 		container.NewVBox(playerCards...),
+		widget.NewSeparator(),
 		buttons,
-	)
+	))
 
 	return container.NewPadded(content)
 }

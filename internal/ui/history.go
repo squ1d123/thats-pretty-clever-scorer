@@ -2,18 +2,17 @@ package ui
 
 import (
 	"fmt"
+	"log/slog"
+
+	"thats-pretty-clever-scorer/internal/storage"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"thats-pretty-clever-scorer/internal/storage"
 )
 
 // CreateGameHistoryScreen creates a screen to browse game history
 func CreateGameHistoryScreen(db *storage.Database, onGameSelected func(gameID string), onBack func()) fyne.CanvasObject {
-
-	// Create title and search controls
-	titleLabel := widget.NewLabelWithStyle("📊 Game History", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	// Search input
 	searchEntry := widget.NewEntry()
@@ -59,6 +58,7 @@ func CreateGameHistoryScreen(db *storage.Database, onGameSelected func(gameID st
 		// Load games with pagination (first 50)
 		games, _, err := db.GetGames(filter, 50, 0)
 		if err != nil {
+			slog.Error("Error loading games", "error", err)
 			gameList.Add(widget.NewLabel("Error loading games"))
 			gameList.Refresh()
 			return
@@ -95,20 +95,12 @@ func CreateGameHistoryScreen(db *storage.Database, onGameSelected func(gameID st
 		sortSelect,
 	)
 
-	// Back button
-	backBtn := widget.NewButton("← Back to Menu", onBack)
-
-	// Initial load
-	loadGames()
-
-	// Main layout
+	// Main layout with navigation bar
 	content := container.NewVBox(
-		titleLabel,
-		widget.NewSeparator(),
+		CreateNavigationBar("📊 Game History", onBack),
 		controls,
 		widget.NewSeparator(),
 		gameList,
-		backBtn,
 	)
 
 	return container.NewPadded(content)
@@ -157,7 +149,7 @@ func createGameCard(game *storage.GameSummary, onGameSelected func(gameID string
 	}
 
 	// Wrap card in container with click handler
-	clickableCard := container.NewStack(card, tappable)
+	clickableCard := container.NewStack(tappable, card)
 
 	return clickableCard
 }

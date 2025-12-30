@@ -65,12 +65,15 @@ func (d *Database) SaveGame(session *GameSession) error {
 // GetGameByID retrieves a complete game session by its ID
 func (d *Database) GetGameByID(gameID string) (*GameSession, error) {
 	// Get game details
-	var gameSession GameSession
+	gameSession := GameSession{
+		Winner: &Player{},
+	}
+
 	err := d.DB.QueryRow(`
 		SELECT uuid, created_at, completed_at, player_count, winner_name, winner_score, notes
 		FROM games WHERE uuid = ?
 	`, gameID).Scan(&gameSession.ID, &gameSession.CreatedAt, &gameSession.CompletedAt,
-		new(int), &gameSession.Winner, new(int), &gameSession.Notes)
+		new(int), &gameSession.Winner.Name, new(int), &gameSession.Notes)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -133,7 +136,7 @@ func (d *Database) getPlayersByGameID(gameID string) ([]*Player, error) {
 // GetGames returns a paginated list of games with optional filtering
 func (d *Database) GetGames(filter GameFilter, limit, offset int) ([]*GameSummary, int, error) {
 	whereClause := ""
-	args := []interface{}{}
+	args := []any{}
 
 	// Build WHERE clause
 	conditions := []string{}
@@ -248,8 +251,8 @@ func (d *Database) DeleteGame(gameID string) error {
 }
 
 // GetDatabaseStats returns statistics about the database
-func (d *Database) GetDatabaseStats() (map[string]interface{}, error) {
-	stats := make(map[string]interface{})
+func (d *Database) GetDatabaseStats() (map[string]any, error) {
+	stats := make(map[string]any)
 
 	// Total games
 	var totalGames int

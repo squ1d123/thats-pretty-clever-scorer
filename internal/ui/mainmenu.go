@@ -97,9 +97,6 @@ func CreateHighScoresScreen(db *storage.Database, onBack func()) fyne.CanvasObje
 		return container.NewVBox(errorLabel, backBtn)
 	}
 
-	// Create title
-	titleLabel := widget.NewLabelWithStyle("🏅 High Scores", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-
 	// Create list of high scores
 	var scoreWidgets []fyne.CanvasObject
 
@@ -139,15 +136,10 @@ func CreateHighScoresScreen(db *storage.Database, onBack func()) fyne.CanvasObje
 		}
 	}
 
-	// Back button
-	backBtn := widget.NewButton("← Back to Menu", onBack)
-
-	// Main layout
+	// Main layout with navigation bar
 	content := container.NewVBox(
-		titleLabel,
-		widget.NewSeparator(),
+		CreateNavigationBar("🏅 High Scores", onBack),
 		container.NewVBox(scoreWidgets...),
-		backBtn,
 	)
 
 	return container.NewPadded(content)

@@ -28,47 +28,35 @@ func main() {
 	defer db.Close()
 
 	// Show main menu
-	mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+	navigateToMainMenu(myApp, myWindow, db)
+	myWindow.ShowAndRun()
+}
+
+// navigateToMainMenu creates and displays the main menu
+func navigateToMainMenu(app fyne.App, window fyne.Window, db *storage.Database) {
+	mainMenu := ui.CreateMainMenu(app, window, db, func(screen string) {
 		switch screen {
 		case "setup":
-			setupScreen := createSetupScreen(myApp, myWindow, db)
-			myWindow.SetContent(setupScreen)
+			window.SetContent(createSetupScreen(app, window, db))
 		case "history":
-			historyScreen := ui.CreateGameHistoryScreen(db, func(gameID string) {
-				detailsScreen := ui.CreateGameDetailsScreen(db, gameID, func() {
-					mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
-						// Handle navigation
-					})
-					myWindow.SetContent(mainMenu)
-				})
-				myWindow.SetContent(detailsScreen)
+			window.SetContent(ui.CreateGameHistoryScreen(db, func(gameID string) {
+				window.SetContent(ui.CreateGameDetailsScreen(db, gameID, func() {
+					navigateToMainMenu(app, window, db)
+				}))
 			}, func() {
-				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
-					// Handle navigation
-				})
-				myWindow.SetContent(mainMenu)
-			})
-			myWindow.SetContent(historyScreen)
+				navigateToMainMenu(app, window, db)
+			}))
 		case "highscores":
-			highScoresScreen := ui.CreateHighScoresScreen(db, func() {
-				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
-					// Handle navigation
-				})
-				myWindow.SetContent(mainMenu)
-			})
-			myWindow.SetContent(highScoresScreen)
+			window.SetContent(ui.CreateHighScoresScreen(db, func() {
+				navigateToMainMenu(app, window, db)
+			}))
 		case "cleanup":
-			cleanupScreen := ui.CreateCleanupScreen(db, func() {
-				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
-					// Handle navigation
-				})
-				myWindow.SetContent(mainMenu)
-			})
-			myWindow.SetContent(cleanupScreen)
+			window.SetContent(ui.CreateCleanupScreen(db, func() {
+				navigateToMainMenu(app, window, db)
+			}, window))
 		}
 	})
-	myWindow.SetContent(mainMenu)
-	myWindow.ShowAndRun()
+	window.SetContent(mainMenu)
 }
 
 func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) fyne.CanvasObject {
@@ -109,16 +97,11 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 	})
 	startCalculatorBtn.Importance = widget.HighImportance
 
-	titleLabel := widget.NewLabelWithStyle("🎲 Ganz Schön Clever Scorer", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	titleLabel.Importance = widget.HighImportance
-
 	subtitleLabel := widget.NewLabelWithStyle("Track your scores for the popular dice game!", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
 	subtitleLabel.Importance = widget.MediumImportance
 
-	content := container.NewBorder(
+	playerContent := container.NewBorder(
 		container.NewVBox(
-			titleLabel,
-			subtitleLabel,
 			widget.NewSeparator(),
 			widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			container.NewVBox(
@@ -132,8 +115,19 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 		),
 		nil, nil,
 		container.NewBorder(widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			nil, nil, nil, playerList,
+			nil, nil, playerList,
 		),
+	)
+
+	// Create main layout with navigation
+	navBar := ui.CreateNavigationBar("🎮 Game Setup", func() {
+		navigateToMainMenu(app, window, db)
+	})
+
+	content := container.NewVBox(
+		navBar,
+		subtitleLabel,
+		playerContent,
 	)
 
 	return container.NewPadded(content)
@@ -152,13 +146,19 @@ func showScoreCalculator(app fyne.App, window fyne.Window, gm *ui.GameManager, d
 	})
 	finishBtn.Importance = widget.HighImportance
 
-	content := container.NewScroll(container.NewVBox(
+	// Create navigation bar
+	navBar := ui.CreateNavigationBar("📊 Score Calculator", func() {
+		navigateToMainMenu(app, window, db)
+	})
+
+	content := container.NewVBox(
+		navBar,
 		calculatorUI,
 		widget.NewSeparator(),
 		container.NewHBox(backBtn, finishBtn),
-	))
+	)
 
-	window.SetContent(container.NewPadded(content))
+	window.SetContent(container.NewPadded(container.NewScroll(content)))
 }
 
 func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager, db *storage.Database) {
@@ -216,23 +216,33 @@ func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager, db *s
 	buttonContainer := container.NewHBox(backToCalculatorBtn, saveBtn, newGameBtn)
 	content.Add(buttonContainer)
 
-	window.SetContent(container.NewPadded(content))
+	// Create navigation bar
+	navBar := ui.CreateNavigationBar("🏆 Final Scores", func() {
+		navigateToMainMenu(app, window, db)
+	})
+
+	finalContent := container.NewVBox(
+		navBar,
+		content,
+	)
+
+	window.SetContent(container.NewPadded(finalContent))
 }
 
 // saveGameDialog handles saving a game to database
-func saveGameDialog(db *storage.Database, gm *ui.GameManager, app fyne.App, window fyne.Window) {
+func saveGameDialog(db *storage.Database, gm *ui.GameManager, _ fyne.App, window fyne.Window) {
 	// Create notes entry
 	notesEntry := widget.NewEntry()
 	notesEntry.SetPlaceHolder("Enter optional notes for this game...")
 
 	// Create dialog content
-	content := container.NewVBox(
+	dialogContent := container.NewVBox(
 		widget.NewLabel("Save this game to your history?"),
 		notesEntry,
 	)
 
 	// Create dialog with buttons
-	dialog.NewCustomConfirm("Save Game", "Save", "Cancel", content, func(confirmed bool) {
+	dialog.NewCustomConfirm("Save Game", "Save", "Cancel", dialogContent, func(confirmed bool) {
 		if confirmed {
 			// Create game session
 			notes := notesEntry.Text

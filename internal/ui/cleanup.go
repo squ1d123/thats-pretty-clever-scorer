@@ -13,10 +13,7 @@ import (
 )
 
 // CreateCleanupScreen creates a screen for managing and cleaning up game data
-func CreateCleanupScreen(db *storage.Database, onBack func()) fyne.CanvasObject {
-
-	// Create title
-	titleLabel := widget.NewLabelWithStyle("🧹 Manage Data", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+func CreateCleanupScreen(db *storage.Database, onBack func(), window fyne.Window) fyne.CanvasObject {
 
 	// Get database statistics
 	stats, err := db.GetDatabaseStats()
@@ -53,14 +50,8 @@ func CreateCleanupScreen(db *storage.Database, onBack func()) fyne.CanvasObject 
 	monthsEntry.SetPlaceHolder("Number of months")
 
 	deleteOldBtn := widget.NewButton("Delete Games Older Than Selected Months", func() {
-		months, err := strconv.Atoi(monthsEntry.Text)
-		if err != nil || months < 1 {
-			dialog.ShowError(fmt.Errorf("Please enter a valid number of months"), nil)
-			return
-		}
-
-		cutoffDate := time.Now().AddDate(0, -months, 0)
-		confirmDeleteOldGames(db, cutoffDate, onBack)
+		cutoffDate := time.Now().AddDate(0, -6, 0)
+		confirmDeleteOldGames(db, cutoffDate, onBack, window)
 	})
 	deleteOldBtn.Importance = widget.HighImportance
 
@@ -72,11 +63,11 @@ func CreateCleanupScreen(db *storage.Database, onBack func()) fyne.CanvasObject 
 	deleteLowBtn := widget.NewButton("Delete Games Below Score Threshold", func() {
 		threshold, err := strconv.Atoi(scoreEntry.Text)
 		if err != nil || threshold < 0 {
-			dialog.ShowError(fmt.Errorf("Please enter a valid score threshold"), nil)
+			dialog.ShowError(fmt.Errorf("Please enter a valid score threshold"), window)
 			return
 		}
 
-		confirmDeleteLowScoringGames(db, threshold, onBack)
+		confirmDeleteLowScoringGames(db, threshold, onBack, window)
 	})
 	deleteLowBtn.Importance = widget.HighImportance
 
@@ -94,31 +85,31 @@ func CreateCleanupScreen(db *storage.Database, onBack func()) fyne.CanvasObject 
 		endDate, err2 := time.Parse("2006-01-02", endEntry.Text)
 
 		if err1 != nil || err2 != nil {
-			dialog.ShowError(fmt.Errorf("Please enter valid dates in YYYY-MM-DD format"), nil)
+			dialog.ShowError(fmt.Errorf("Please enter valid dates in YYYY-MM-DD format"), window)
 			return
 		}
 
 		if startDate.After(endDate) {
-			dialog.ShowError(fmt.Errorf("Start date must be before end date"), nil)
+			dialog.ShowError(fmt.Errorf("Start date must be before end date"), window)
 			return
 		}
 
-		confirmDeleteDateRange(db, startDate, endDate, onBack)
+		confirmDeleteDateRange(db, startDate, endDate, onBack, window)
 	})
 	deleteRangeBtn.Importance = widget.HighImportance
 
 	// Layout options
 	optionsContainer := container.NewVBox(
 		widget.NewCard("", "Delete by Age", container.NewVBox(
-			widget.NewLabel("Delete all games older than the specified number of months:"),
+			widget.NewLabel("Delete all games older than specified number of months:"),
 			container.NewHBox(monthsEntry, deleteOldBtn),
 		)),
 		widget.NewCard("", "Delete by Score", container.NewVBox(
-			widget.NewLabel("Delete all games where the winning score is below the threshold:"),
+			widget.NewLabel("Delete all games where winning score is below threshold:"),
 			container.NewHBox(scoreEntry, deleteLowBtn),
 		)),
 		widget.NewCard("", "Delete by Date Range", container.NewVBox(
-			widget.NewLabel("Delete all games within the specified date range:"),
+			widget.NewLabel("Delete all games within specified date range:"),
 			container.NewGridWithColumns(2,
 				widget.NewLabel("Start Date:"),
 				startEntry,
@@ -136,27 +127,22 @@ func CreateCleanupScreen(db *storage.Database, onBack func()) fyne.CanvasObject 
 		fyne.TextStyle{Bold: true, Italic: true},
 	)
 
-	// Back button
-	backBtn := widget.NewButton("← Back to Menu", onBack)
-
-	// Main layout
+	// Main layout with navigation bar
 	content := container.NewVBox(
-		titleLabel,
-		widget.NewSeparator(),
+		CreateNavigationBar("🧹 Data Management", onBack),
 		statsLabel,
 		widget.NewSeparator(),
 		optionsTitle,
 		optionsContainer,
 		widget.NewSeparator(),
 		warningLabel,
-		backBtn,
 	)
 
 	return container.NewPadded(content)
 }
 
 // confirmDeleteOldGames shows confirmation dialog for deleting old games
-func confirmDeleteOldGames(db *storage.Database, cutoffDate time.Time, onBack func()) {
+func confirmDeleteOldGames(db *storage.Database, cutoffDate time.Time, onBack func(), window fyne.Window) {
 	message := fmt.Sprintf("Delete all games older than %s?\n\nThis action cannot be undone.",
 		cutoffDate.Format("January 2, 2006"))
 
@@ -167,9 +153,9 @@ func confirmDeleteOldGames(db *storage.Database, cutoffDate time.Time, onBack fu
 			if confirmed {
 				deletedCount, err := db.DeleteOldGames(cutoffDate)
 				if err != nil {
-					dialog.ShowError(fmt.Errorf("Failed to delete old games: %v", err), nil)
+					dialog.ShowError(fmt.Errorf("Failed to delete old games: %v", err), window)
 				} else {
-					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d old games.", deletedCount), nil)
+					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d old games.", deletedCount), window)
 					onBack() // Refresh screen
 				}
 			}
@@ -179,8 +165,8 @@ func confirmDeleteOldGames(db *storage.Database, cutoffDate time.Time, onBack fu
 }
 
 // confirmDeleteLowScoringGames shows confirmation dialog for deleting low-scoring games
-func confirmDeleteLowScoringGames(db *storage.Database, threshold int, onBack func()) {
-	message := fmt.Sprintf("Delete all games where the winning score is below %d?\n\nThis action cannot be undone.",
+func confirmDeleteLowScoringGames(db *storage.Database, threshold int, onBack func(), window fyne.Window) {
+	message := fmt.Sprintf("Delete all games where winning score is below %d?\n\nThis action cannot be undone.",
 		threshold)
 
 	dialog.NewConfirm(
@@ -190,19 +176,19 @@ func confirmDeleteLowScoringGames(db *storage.Database, threshold int, onBack fu
 			if confirmed {
 				deletedCount, err := db.DeleteLowScoringGames(threshold)
 				if err != nil {
-					dialog.ShowError(fmt.Errorf("Failed to delete low-scoring games: %v", err), nil)
+					dialog.ShowError(fmt.Errorf("Failed to delete low-scoring games: %v", err), window)
 				} else {
-					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d low-scoring games.", deletedCount), nil)
+					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d low-scoring games.", deletedCount), window)
 					onBack() // Refresh screen
 				}
 			}
 		},
-		nil,
+		window,
 	).Show()
 }
 
 // confirmDeleteDateRange shows confirmation dialog for deleting games in date range
-func confirmDeleteDateRange(db *storage.Database, startDate, endDate time.Time, onBack func()) {
+func confirmDeleteDateRange(db *storage.Database, startDate, endDate time.Time, onBack func(), window fyne.Window) {
 	message := fmt.Sprintf("Delete all games between %s and %s?\n\nThis action cannot be undone.",
 		startDate.Format("January 2, 2006"), endDate.Format("January 2, 2006"))
 
@@ -213,9 +199,9 @@ func confirmDeleteDateRange(db *storage.Database, startDate, endDate time.Time, 
 			if confirmed {
 				deletedCount, err := db.DeleteGamesInDateRange(startDate, endDate)
 				if err != nil {
-					dialog.ShowError(fmt.Errorf("Failed to delete games in date range: %v", err), nil)
+					dialog.ShowError(fmt.Errorf("Failed to delete games in date range: %v", err), window)
 				} else {
-					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d games in date range.", deletedCount), nil)
+					dialog.ShowInformation("Games Deleted", fmt.Sprintf("Successfully deleted %d games in date range.", deletedCount), window)
 					onBack() // Refresh screen
 				}
 			}
