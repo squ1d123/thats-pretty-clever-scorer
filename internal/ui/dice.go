@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"strconv"
 	"thats-pretty-clever-scorer/internal/game"
 )
 
@@ -24,6 +25,12 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 		game.Blue:   "Blue",
 	}
 
+	updateDiceDisplay := func() {
+		for i, die := range gm.DiceSet.Dice {
+			diceLabels[i].SetText(colorNames[die.Color] + ": " + strconv.Itoa(die.Value))
+		}
+	}
+
 	for _, color := range colors {
 		label := widget.NewLabel(colorNames[color] + ": -")
 		diceLabels = append(diceLabels, label)
@@ -31,9 +38,7 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 
 	rollButton := widget.NewButton("Roll Dice", func() {
 		gm.DiceSet.Roll()
-		for i, die := range gm.DiceSet.Dice {
-			diceLabels[i].SetText(colorNames[die.Color] + ": " + string(rune(die.Value+'0')))
-		}
+		updateDiceDisplay()
 	})
 
 	diceGrid := container.NewGridWithColumns(3)
@@ -44,6 +49,26 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 	selectedDieLabel := widget.NewLabel("Selected Die: None")
 	silverPlatterLabel := widget.NewLabel("Silver Platter: None")
 
+	useDieButtons := container.NewGridWithColumns(3)
+	for i, color := range colors {
+		dieBtn := widget.NewButton("Use "+colorNames[color], func() {
+			if gm.DiceSet.Dice[i].Value > 0 {
+				selectedDieLabel.SetText("Selected Die: " + colorNames[color] + " (" + strconv.Itoa(gm.DiceSet.Dice[i].Value) + ")")
+				// Find lower dice for silver platter
+				lowerDice := gm.DiceSet.GetLowerDice(gm.DiceSet.Dice[i].Value)
+				silverText := "Silver Platter: "
+				for _, lower := range lowerDice {
+					silverText += colorNames[lower.Color] + "(" + strconv.Itoa(lower.Value) + ") "
+				}
+				if len(lowerDice) == 0 {
+					silverText += "None"
+				}
+				silverPlatterLabel.SetText(silverText)
+			}
+		})
+		useDieButtons.Add(dieBtn)
+	}
+
 	return container.NewVBox(
 		widget.NewLabel("Dice Roller"),
 		widget.NewSeparator(),
@@ -51,6 +76,9 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 		widget.NewSeparator(),
 		widget.NewLabel("Current Roll:"),
 		diceGrid,
+		widget.NewSeparator(),
+		widget.NewLabel("Select Die to Use:"),
+		useDieButtons,
 		widget.NewSeparator(),
 		selectedDieLabel,
 		silverPlatterLabel,
