@@ -158,50 +158,54 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 	// Initial update
 	updateDisplays()
 
-	// Create layout
-	return container.NewVBox(
-		widget.NewLabelWithStyle("👤 "+player.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+	// Create compact card layout
+	playerCard := container.NewVBox(
+		widget.NewLabelWithStyle("👤 "+player.Name, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🟡 Yellow:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟡:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			yellowEntry,
-			widget.NewLabelWithStyle("🟢 Green:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟢:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			greenEntry,
-			widget.NewLabelWithStyle("🟠 Orange:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟠:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			orangeEntry,
-			widget.NewLabelWithStyle("🟣 Purple:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟣:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			purpleEntry,
-			widget.NewLabelWithStyle("🔵 Blue:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🔵:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			blueEntry,
 		),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🦊 Foxes:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🦊:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			foxEntry,
-			widget.NewLabelWithStyle("⭐ Bonus:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("⭐:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			bonusLabel,
 		),
 		widget.NewSeparator(),
-		container.NewGridWithColumns(2,
+		container.NewHBox(
 			widget.NewLabelWithStyle("🎯 Total:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			totalLabel,
 		),
 	)
+
+	return playerCard
 }
 
 func CreateAllPlayersUI(gm *GameManager) fyne.CanvasObject {
-	// Create scrollable container for all players
-	scrollContainer := container.NewScroll(container.NewVBox())
+	// Create grid layout for better screen utilization
+	grid := container.NewGridWithColumns(2) // 2 columns of players
+	grid.Refresh()
 
 	refreshPlayers := func() {
-		content := container.NewVBox()
+		// Clear existing content
+		grid.Objects = nil
+
+		// Add players to grid (up to 2 per row)
 		for i, player := range gm.Players {
 			playerUI := CreatePlayerScoreUI(player, i, gm)
-			content.Add(playerUI)
-			content.Add(widget.NewSeparator())
+			grid.Add(playerUI)
 		}
-		scrollContainer.Content = content
-		scrollContainer.Refresh()
+		grid.Refresh()
 	}
 
 	refreshPlayers()
@@ -209,6 +213,6 @@ func CreateAllPlayersUI(gm *GameManager) fyne.CanvasObject {
 	return container.NewVBox(
 		widget.NewLabelWithStyle("🏆 Final Score Calculator", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
-		scrollContainer,
+		grid,
 	)
 }
