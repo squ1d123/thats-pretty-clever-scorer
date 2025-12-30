@@ -50,14 +50,15 @@ build_app() {
     # Build Android APK
     fyne package -os android \
         -name "GanzCleverScorer" \
-        -appID "com.example.ganzcleverscorer" \
-        -version 1.0 \
-        -build 1 \
-        -icon icon.png \
-        -o bin/
+        -app-id "com.example.ganzcleverscorer" \
+        -app-version 1.0 \
+        -app-build 1 \
+        -icon Icon.png
+        # -o bin/
     
-    if [ -f "bin/GanzCleverScorer.apk" ]; then
+    if [ -f "GanzCleverScorer.apk" ]; then
         echo -e "${GREEN}✅ Build successful!${NC}"
+        mv GanzCleverScorer.apk bin/
         ls -la bin/*.apk
     else
         echo -e "${RED}❌ Build failed!${NC}"
@@ -118,8 +119,8 @@ main() {
     echo ""
     
     # Create icon if it doesn't exist
-    if [ ! -f "icon.png" ]; then
-        echo -e "${YELLOW}⚠️  icon.png not found. You may want to add an app icon.${NC}"
+    if [ ! -f "Icon.png" ]; then
+        echo -e "${YELLOW}⚠️  Icon.png not found. You may want to add an app icon.${NC}"
         echo "Continuing with default icon..."
     fi
     
