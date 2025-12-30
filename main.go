@@ -20,7 +20,7 @@ func main() {
 	myWindow.Resize(fyne.NewSize(1200, 800))
 
 	// Initialize database
-	db, err := storage.InitializeDatabase()
+	db, err := storage.InitializeDatabase(myApp)
 	if err != nil {
 		dialog.ShowError(fmt.Errorf("Failed to initialize database: %v", err), myWindow)
 		return
@@ -217,4 +217,34 @@ func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager, db *s
 	content.Add(buttonContainer)
 
 	window.SetContent(container.NewPadded(content))
+}
+
+// saveGameDialog handles saving a game to database
+func saveGameDialog(db *storage.Database, gm *ui.GameManager, app fyne.App, window fyne.Window) {
+	// Create notes entry
+	notesEntry := widget.NewEntry()
+	notesEntry.SetPlaceHolder("Enter optional notes for this game...")
+
+	// Create dialog content
+	content := container.NewVBox(
+		widget.NewLabel("Save this game to your history?"),
+		notesEntry,
+	)
+
+	// Create dialog with buttons
+	dialog.NewCustomConfirm("Save Game", "Save", "Cancel", content, func(confirmed bool) {
+		if confirmed {
+			// Create game session
+			notes := notesEntry.Text
+			gameSession := storage.NewGameSession(gm.Players, notes)
+
+			// Save to database
+			err := db.SaveGame(gameSession)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("Failed to save game: %v", err), window)
+			} else {
+				dialog.ShowInformation("Game Saved", "The game has been successfully saved to your history!", window)
+			}
+		}
+	}, window).Show()
 }

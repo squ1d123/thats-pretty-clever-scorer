@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"fyne.io/fyne/v2"
 	_ "modernc.org/sqlite"
 )
 
@@ -12,9 +13,12 @@ type Database struct {
 	DB *sql.DB
 }
 
-func InitializeDatabase() (*Database, error) {
-	// Open database file
-	dbPath := getDatabasePath()
+func InitializeDatabase(app fyne.App) (*Database, error) {
+	// Get database path using Fyne's preferences and storage API
+	dbPath, err := getDatabasePath(app)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database path: %w", err)
+	}
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
@@ -37,9 +41,28 @@ func InitializeDatabase() (*Database, error) {
 	return database, nil
 }
 
-func getDatabasePath() string {
-	// For now, use a local file. In production, this should use the app's data directory
-	return "./games.db"
+func getDatabasePath(app fyne.App) (string, error) {
+	// Get stored database path from preferences
+	prefs := app.Preferences()
+	dbPath := prefs.StringWithFallback("database_path", "")
+
+	if dbPath != "" {
+		return dbPath, nil
+	}
+
+	// Create default database path using Fyne's storage API
+	// This works correctly on both mobile and desktop
+	repo := app.Storage()
+	dbURI, err := repo.Create("games.db")
+	if err != nil {
+		return "", fmt.Errorf("failed to create database URI: %w", err)
+	}
+
+	// Store the URI path in preferences for future use
+	dbPath = dbURI.URI().String()
+	prefs.SetString("database_path", dbPath)
+
+	return dbPath, nil
 }
 
 func (d *Database) createTables() error {

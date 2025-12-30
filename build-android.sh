@@ -48,13 +48,7 @@ build_app() {
     rm -rf bin/GanzCleverScorer.apk
     
     # Build Android APK
-    fyne package -os android \
-        -name "GanzCleverScorer" \
-        -app-id "com.example.ganzcleverscorer" \
-        -app-version 1.0 \
-        -app-build 1 \
-        -icon Icon.png
-        # -o bin/
+    fyne package -os android
     
     if [ -f "GanzCleverScorer.apk" ]; then
         echo -e "${GREEN}✅ Build successful!${NC}"
