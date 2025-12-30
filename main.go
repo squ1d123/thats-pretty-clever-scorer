@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	myApp := app.New()
+	myApp := app.NewWithID("com.squ1d123.ganzcleverscorer")
 	myApp.SetIcon(nil)
 	myWindow := myApp.NewWindow("Ganz Schön Clever Scorer")
 	myWindow.Resize(fyne.NewSize(1200, 800))
