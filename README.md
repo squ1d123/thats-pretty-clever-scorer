@@ -17,13 +17,55 @@ A cross-platform scoring application for the popular dice game "Ganz Schön Clev
 
 ## Installation
 
-### From Source
+### 📱 Android Installation (Easiest)
 
-1. Clone the repository:
+#### Quick Install:
+```bash
+# 1. Run the automated build and install script
+chmod +x build-android.sh
+./build-android.sh
+```
+*The script will handle everything - building, device detection, installation!*
+
+#### Manual Android Build:
+```bash
+# 1. Install Fyne CLI
+go install fyne.io/fyne/v2/cmd/fyne@latest
+
+# 2. Build APK
+fyne package -os android -name "GanzCleverScorer" -appID "com.example.ganzcleverscorer" -o bin/
+
+# 3. Install via ADB
+adb install bin/GanzCleverScorer.apk
+```
+
+#### Prerequisites for Android:
+- **Android 5.0+** (API level 21+)
+- **USB Debugging** enabled on phone
+- **ADB** (Android Debug Bridge) installed
+- **USB connection** between computer and phone
+
+### 💻 Desktop Installation
+
+#### From Source:
 ```bash
 git clone <repository-url>
 cd thats-pretty-clever-scorer
+go mod tidy
+go build -o scorer ./cmd/main.go
 ```
+
+#### Cross-Platform Build:
+```bash
+./build.sh  # Builds for Windows, macOS, Linux, Android
+```
+
+### 📋 Prerequisites:
+
+- **Go 1.21+** - For building the application
+- **Fyne v2.7+** - Cross-platform UI framework  
+- **Android SDK** (for mobile builds only)
+- **For mobile**: Android Studio or Xcode
 
 2. Install dependencies:
 ```bash
@@ -43,17 +85,34 @@ go build -o scorer ./cmd/main.go
 
 Check the `bin/` directory or releases section for pre-built executables for your platform.
 
-## Usage
+## 🏆 Final Score Calculator Mode
 
-1. **Start the Application**: Launch the executable
-2. **Add Players**: Enter player names (1-4 players)
-3. **Start Game**: Click "Start Game" to begin
-4. **Take Turns**: 
-   - Roll dice to get values
-   - Select dice and mark score sheets
-   - Use "Next Player" to advance turns
-5. **View Scores**: Automatic score calculation as you play
-6. **End Game**: See final scores and winner
+1. **Start the application:**
+```bash
+./bin/scorer
+```
+
+2. **Add players** (1-4 players):
+   - Enter player names in setup screen
+   - Click "Open Score Calculator"
+
+3. **Enter final scores** for each player:
+   - 🟡 **Yellow Area**: Enter total yellow score
+   - 🟢 **Green Area**: Enter total green score  
+   - 🟠 **Orange Area**: Enter total orange score
+   - 🟣 **Purple Area**: Enter total purple score
+   - 🔵 **Blue Area**: Enter total blue score
+   - 🦊 **Foxes**: Enter number of foxes collected
+   - ⭐ **Bonus**: Automatically calculated (lowest section × foxes)
+   - 🎯 **Total**: Automatically calculated
+
+4. **View results**:
+   - Click "Show Final Scores" to see winner
+   - 🏆 Winner is highlighted with crown
+   - 📊 All scores compared side-by-side
+
+5. **Start new calculation**:
+   - Click "New Game" or "Back to Setup" to reset
 
 ## Game Rules
 
