@@ -102,11 +102,11 @@ func showScoreCalculator(app fyne.App, window fyne.Window, gm *ui.GameManager) {
 	})
 	finishBtn.Importance = widget.HighImportance
 
-	content := container.NewVBox(
+	content := container.NewScroll(container.NewVBox(
 		calculatorUI,
 		widget.NewSeparator(),
 		container.NewHBox(backBtn, finishBtn),
-	)
+	))
 
 	window.SetContent(container.NewPadded(content))
 }
