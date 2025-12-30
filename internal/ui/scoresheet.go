@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"slices"
 	"strconv"
 	"thats-pretty-clever-scorer/internal/game"
 )
@@ -25,7 +26,7 @@ func (gm *GameManager) AddPlayer(name string) {
 
 func (gm *GameManager) RemovePlayer(index int) {
 	if index >= 0 && index < len(gm.Players) {
-		gm.Players = append(gm.Players[:index], gm.Players[index+1:]...)
+		gm.Players = slices.Delete(gm.Players, index, index+1)
 	}
 }
 

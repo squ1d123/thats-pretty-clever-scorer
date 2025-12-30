@@ -1,12 +1,13 @@
 package main
 
 import (
+	"strconv"
+	"thats-pretty-clever-scorer/internal/ui"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"strconv"
-	"thats-pretty-clever-scorer/internal/ui"
 )
 
 func main() {
@@ -33,7 +34,6 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 		},
 		func() fyne.CanvasObject {
 			label := widget.NewLabel("")
-			label.Resize(fyne.NewSize(300, 60))
 			return label
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
@@ -42,8 +42,6 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 			label.SetText("  " + playerText + "  ")
 		},
 	)
-
-	playerList.Resize(fyne.NewSize(400, 300))
 
 	addPlayerBtn := widget.NewButton("Add Player", func() {
 		if playerEntry.Text != "" {
@@ -67,20 +65,25 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 	subtitleLabel := widget.NewLabelWithStyle("Track your scores for the popular dice game!", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
 	subtitleLabel.Importance = widget.MediumImportance
 
-	content := container.NewVBox(
-		titleLabel,
-		subtitleLabel,
-		widget.NewSeparator(),
-		widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+	content := container.NewBorder(
 		container.NewVBox(
-			playerEntry,
-			addPlayerBtn,
+			titleLabel,
+			subtitleLabel,
+			widget.NewSeparator(),
+			widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			container.NewVBox(
+				playerEntry,
+				addPlayerBtn,
+			),
+			widget.NewSeparator(),
 		),
-		widget.NewSeparator(),
-		widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		playerList,
-		widget.NewSeparator(),
-		startCalculatorBtn,
+		container.NewVBox(
+			startCalculatorBtn,
+		),
+		nil, nil,
+		container.NewBorder(widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			nil, nil, nil, playerList,
+		),
 	)
 
 	return container.NewPadded(content)
