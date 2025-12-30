@@ -59,31 +59,42 @@ func main() {
 }
 
 func showGameScreen(app fyne.App, window fyne.Window, gm *GameManager) {
-	roundLabel := widget.NewLabel("Round: 1")
-	currentPlayerLabel := widget.NewLabel("Current Player: " + getCurrentPlayerName(gm))
+	// Create styled game info
+	gameTitleLabel := widget.NewLabelWithStyle("🎲 Ganz Schön Clever", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	gameTitleLabel.Importance = widget.HighImportance
 
-	nextPlayerBtn := widget.NewButton("Next Player", func() {
+	roundLabel := widget.NewLabelWithStyle("🔄 Round: 1", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	currentPlayerLabel := widget.NewLabelWithStyle("🎯 Current Player: "+getCurrentPlayerName(gm), fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+
+	// Style control buttons
+	nextPlayerBtn := widget.NewButton("➡️ Next Player", func() {
 		gm.NextPlayer()
-		roundLabel.SetText("Round: " + strconv.Itoa(gm.Round))
-		currentPlayerLabel.SetText("Current Player: " + getCurrentPlayerName(gm))
+		roundLabel.SetText("🔄 Round: " + strconv.Itoa(gm.Round))
+		currentPlayerLabel.SetText("🎯 Current Player: " + getCurrentPlayerName(gm))
 	})
+	nextPlayerBtn.Importance = widget.MediumImportance
+
+	endGameBtn := widget.NewButton("🏁 End Game", func() {
+		showFinalScores(app, window, gm)
+	})
+	endGameBtn.Importance = widget.HighImportance
 
 	gameControls := container.NewHBox(
 		nextPlayerBtn,
-		widget.NewButton("End Game", func() {
-			showFinalScores(app, window, gm)
-		}),
+		endGameBtn,
 	)
 
+	// Create styled player tabs
 	tabContainer := container.NewAppTabs()
+	tabContainer.SetTabLocation(container.TabLocationBottom)
 
 	for _, player := range gm.Players {
 		playerTab := createPlayerTab(player, gm)
-		tabContainer.Append(container.NewTabItem(player.Name, playerTab))
+		tabContainer.Append(container.NewTabItem("👤 "+player.Name, playerTab))
 	}
 
 	gameContainer := container.NewVBox(
-		widget.NewLabel("Ganz Schön Clever"),
+		gameTitleLabel,
 		widget.NewSeparator(),
 		roundLabel,
 		currentPlayerLabel,
@@ -103,27 +114,48 @@ func getCurrentPlayerName(gm *GameManager) string {
 }
 
 func showFinalScores(app fyne.App, window fyne.Window, gm *GameManager) {
-	var scores []fyne.CanvasObject
-
-	for _, player := range gm.Players {
-		scoreLabel := widget.NewLabel(player.Name + ": " + strconv.Itoa(player.GetTotalScore()) + " points")
-		scores = append(scores, scoreLabel)
-	}
+	// Create styled title
+	titleLabel := widget.NewLabelWithStyle("🏆 Game Over - Final Scores", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	titleLabel.Importance = widget.HighImportance
 
 	content := container.NewVBox(
-		widget.NewLabel("Final Scores"),
+		titleLabel,
 		widget.NewSeparator(),
 	)
 
-	for _, score := range scores {
-		content.Add(score)
+	// Find winner
+	maxScore := -1
+	for _, player := range gm.Players {
+		if player.GetTotalScore() > maxScore {
+			maxScore = player.GetTotalScore()
+		}
 	}
 
-	content.Add(widget.NewSeparator())
-	content.Add(widget.NewButton("New Game", func() {
-		window.SetContent(createSetupScreen(app, window))
-	}))
+	// Display scores with winner highlighting
+	for _, player := range gm.Players {
+		score := player.GetTotalScore()
+		scoreText := strconv.Itoa(score) + " points"
 
+		if score == maxScore {
+			// Winner gets special styling
+			scoreLabel := widget.NewLabelWithStyle("🏆 "+player.Name+" (WINNER): "+scoreText, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+			scoreLabel.Importance = widget.HighImportance
+			content.Add(scoreLabel)
+		} else {
+			scoreLabel := widget.NewLabel("👤 " + player.Name + ": " + scoreText)
+			scoreLabel.Importance = widget.MediumImportance
+			content.Add(scoreLabel)
+		}
+		content.Add(widget.NewSeparator())
+	}
+
+	// Style the new game button
+	newGameBtn := widget.NewButton("🆕 New Game", func() {
+		window.SetContent(createSetupScreen(app, window))
+	})
+	newGameBtn.Importance = widget.HighImportance
+
+	content.Add(newGameBtn)
 	window.SetContent(content)
 }
 
@@ -168,16 +200,28 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 		}
 	})
 
+	// Create styled header
+	titleLabel := widget.NewLabelWithStyle("🎲 Ganz Schön Clever Scorer", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	titleLabel.Importance = widget.HighImportance
+
+	subtitleLabel := widget.NewLabelWithStyle("Track your scores for the popular dice game!", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
+	subtitleLabel.Importance = widget.MediumImportance
+
+	// Style buttons
+	addPlayerBtn.Importance = widget.MediumImportance
+	startGameBtn.Importance = widget.HighImportance
+
 	content := container.NewVBox(
-		widget.NewLabel("Ganz Schön Clever Scorer"),
+		titleLabel,
+		subtitleLabel,
 		widget.NewSeparator(),
-		widget.NewLabel("Add Players:"),
+		widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		container.NewVBox(
 			playerEntry,
 			addPlayerBtn,
 		),
 		widget.NewSeparator(),
-		widget.NewLabel("Players:"),
+		widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		playerList,
 		widget.NewSeparator(),
 		startGameBtn,

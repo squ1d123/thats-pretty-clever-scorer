@@ -31,11 +31,6 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 		}
 	}
 
-	for _, color := range colors {
-		label := widget.NewLabel(colorNames[color] + ": -")
-		diceLabels = append(diceLabels, label)
-	}
-
 	rollButton := widget.NewButton("Roll Dice", func() {
 		gm.DiceSet.Roll()
 		updateDiceDisplay()
@@ -69,18 +64,31 @@ func CreateDiceRollerUI(gm *GameManager) fyne.CanvasObject {
 		useDieButtons.Add(dieBtn)
 	}
 
+	// Create styled header
+	header := widget.NewLabelWithStyle("🎲 Dice Roller", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	header.Importance = widget.MediumImportance
+
+	// Style the roll button to be more prominent
+	rollButton.Importance = widget.HighImportance
+
 	return container.NewVBox(
-		widget.NewLabel("Dice Roller"),
+		header,
 		widget.NewSeparator(),
 		rollButton,
 		widget.NewSeparator(),
-		widget.NewLabel("Current Roll:"),
-		diceGrid,
+		widget.NewLabelWithStyle("🎯 Current Roll:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		container.NewPadded(diceGrid),
 		widget.NewSeparator(),
-		widget.NewLabel("Select Die to Use:"),
-		useDieButtons,
+		widget.NewLabelWithStyle("🎮 Select Die to Use:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		container.NewPadded(useDieButtons),
 		widget.NewSeparator(),
-		selectedDieLabel,
-		silverPlatterLabel,
+		container.NewVBox(
+			widget.NewLabelWithStyle("✅ Selected Die:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			selectedDieLabel,
+		),
+		container.NewVBox(
+			widget.NewLabelWithStyle("🍽 Silver Platter:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			silverPlatterLabel,
+		),
 	)
 }
