@@ -132,18 +132,27 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 
 	playerEntry := widget.NewEntry()
 	playerEntry.SetPlaceHolder("Enter player name")
+	playerEntry.Resize(fyne.NewSize(200, 40))
 
 	playerList := widget.NewList(
 		func() int {
 			return len(gm.Players)
 		},
 		func() fyne.CanvasObject {
-			return widget.NewLabel("")
+			label := widget.NewLabel("")
+			label.Resize(fyne.NewSize(300, 60)) // Make items taller
+			return label
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText(gm.Players[i].String())
+			label := o.(*widget.Label)
+			playerText := gm.Players[i].String()
+			// Add extra spacing between items
+			label.SetText("  " + playerText + "  ")
 		},
 	)
+
+	// Set the list to be more spaced out
+	playerList.Resize(fyne.NewSize(400, 300))
 
 	addPlayerBtn := widget.NewButton("Add Player", func() {
 		if playerEntry.Text != "" {
@@ -159,16 +168,22 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 		}
 	})
 
-	return container.NewVBox(
+	content := container.NewVBox(
 		widget.NewLabel("Ganz Schön Clever Scorer"),
 		widget.NewSeparator(),
 		widget.NewLabel("Add Players:"),
-		container.NewHBox(playerEntry, addPlayerBtn),
+		container.NewVBox(
+			playerEntry,
+			addPlayerBtn,
+		),
+		widget.NewSeparator(),
 		widget.NewLabel("Players:"),
 		playerList,
 		widget.NewSeparator(),
 		startGameBtn,
 	)
+
+	return container.NewPadded(content)
 }
 
 func createPlayerTab(player *game.Player, gm *GameManager) fyne.CanvasObject {
