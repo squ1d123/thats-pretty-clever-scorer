@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
+	"thats-pretty-clever-scorer/internal/storage"
 	"thats-pretty-clever-scorer/internal/ui"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -16,12 +19,59 @@ func main() {
 	myWindow := myApp.NewWindow("Ganz Schön Clever Scorer")
 	myWindow.Resize(fyne.NewSize(1200, 800))
 
-	setupScreen := createSetupScreen(myApp, myWindow)
-	myWindow.SetContent(setupScreen)
+	// Initialize database
+	db, err := storage.InitializeDatabase()
+	if err != nil {
+		dialog.ShowError(fmt.Errorf("Failed to initialize database: %v", err), myWindow)
+		return
+	}
+	defer db.Close()
+
+	// Show main menu
+	mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+		switch screen {
+		case "setup":
+			setupScreen := createSetupScreen(myApp, myWindow, db)
+			myWindow.SetContent(setupScreen)
+		case "history":
+			historyScreen := ui.CreateGameHistoryScreen(db, func(gameID string) {
+				detailsScreen := ui.CreateGameDetailsScreen(db, gameID, func() {
+					mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+						// Handle navigation
+					})
+					myWindow.SetContent(mainMenu)
+				})
+				myWindow.SetContent(detailsScreen)
+			}, func() {
+				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+					// Handle navigation
+				})
+				myWindow.SetContent(mainMenu)
+			})
+			myWindow.SetContent(historyScreen)
+		case "highscores":
+			highScoresScreen := ui.CreateHighScoresScreen(db, func() {
+				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+					// Handle navigation
+				})
+				myWindow.SetContent(mainMenu)
+			})
+			myWindow.SetContent(highScoresScreen)
+		case "cleanup":
+			cleanupScreen := ui.CreateCleanupScreen(db, func() {
+				mainMenu := ui.CreateMainMenu(myApp, myWindow, db, func(screen string) {
+					// Handle navigation
+				})
+				myWindow.SetContent(mainMenu)
+			})
+			myWindow.SetContent(cleanupScreen)
+		}
+	})
+	myWindow.SetContent(mainMenu)
 	myWindow.ShowAndRun()
 }
 
-func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
+func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) fyne.CanvasObject {
 	gm := ui.NewGameManager()
 
 	playerEntry := widget.NewEntry()
@@ -54,7 +104,7 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 
 	startCalculatorBtn := widget.NewButton("Open Score Calculator", func() {
 		if len(gm.Players) > 0 {
-			showScoreCalculator(app, window, gm)
+			showScoreCalculator(app, window, gm, db)
 		}
 	})
 	startCalculatorBtn.Importance = widget.HighImportance
@@ -89,16 +139,16 @@ func createSetupScreen(app fyne.App, window fyne.Window) fyne.CanvasObject {
 	return container.NewPadded(content)
 }
 
-func showScoreCalculator(app fyne.App, window fyne.Window, gm *ui.GameManager) {
+func showScoreCalculator(app fyne.App, window fyne.Window, gm *ui.GameManager, db *storage.Database) {
 	calculatorUI := ui.CreateAllPlayersUI(gm)
 
 	backBtn := widget.NewButton("Back to Setup", func() {
-		window.SetContent(createSetupScreen(app, window))
+		window.SetContent(createSetupScreen(app, window, db))
 	})
 	backBtn.Importance = widget.MediumImportance
 
 	finishBtn := widget.NewButton("Show Final Scores", func() {
-		showFinalScores(app, window, gm)
+		showFinalScores(app, window, gm, db)
 	})
 	finishBtn.Importance = widget.HighImportance
 
@@ -111,7 +161,7 @@ func showScoreCalculator(app fyne.App, window fyne.Window, gm *ui.GameManager) {
 	window.SetContent(container.NewPadded(content))
 }
 
-func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager) {
+func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager, db *storage.Database) {
 	titleLabel := widget.NewLabelWithStyle("🏆 Final Scores", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	titleLabel.Importance = widget.HighImportance
 
@@ -146,18 +196,24 @@ func showFinalScores(app fyne.App, window fyne.Window, gm *ui.GameManager) {
 		content.Add(widget.NewSeparator())
 	}
 
+	// Add save functionality
+	saveBtn := widget.NewButton("💾 Save Game", func() {
+		saveGameDialog(db, gm, app, window)
+	})
+	saveBtn.Importance = widget.HighImportance
+
 	// Style buttons
 	newGameBtn := widget.NewButton("🆕 New Game", func() {
-		window.SetContent(createSetupScreen(app, window))
+		window.SetContent(createSetupScreen(app, window, db))
 	})
 	newGameBtn.Importance = widget.HighImportance
 
 	backToCalculatorBtn := widget.NewButton("📊 Back to Calculator", func() {
-		showScoreCalculator(app, window, gm)
+		showScoreCalculator(app, window, gm, db)
 	})
 	backToCalculatorBtn.Importance = widget.MediumImportance
 
-	buttonContainer := container.NewHBox(backToCalculatorBtn, newGameBtn)
+	buttonContainer := container.NewHBox(backToCalculatorBtn, saveBtn, newGameBtn)
 	content.Add(buttonContainer)
 
 	window.SetContent(container.NewPadded(content))
