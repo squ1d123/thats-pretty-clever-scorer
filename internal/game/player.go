@@ -20,6 +20,10 @@ func (p *Player) GetTotalScore() int {
 	return p.ScoreSheet.GetTotalScore()
 }
 
-func (p *Player) String() string {
+func (p *Player) GetScoreText() string {
 	return fmt.Sprintf("%s: %d points", p.Name, p.GetTotalScore())
+}
+
+func (p *Player) String() string {
+	return p.Name
 }

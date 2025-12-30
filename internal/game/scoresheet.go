@@ -11,28 +11,32 @@ type ScoreSheet struct {
 
 type YellowScoreArea struct {
 	Columns [6][]bool // 6 columns, each with numbers 1-6
+	Total   int       // Total score for yellow area
 }
 
 type GreenScoreArea struct {
 	Numbers []bool // 11 numbers: 2,3,4,5,6,7,8,9,10,11,12
+	Total   int    // Total score for green area
 }
 
 type OrangeScoreArea struct {
 	Numbers []int // 11 spaces for any numbers
+	Total   int   // Total score for orange area
 }
 
 type PurpleScoreArea struct {
 	Numbers []bool // 11 numbers: 1-11, with special 6 reset
+	Total   int    // Total score for purple area
 }
 
 type BlueScoreArea struct {
 	Numbers []bool // 11 numbers: 1-11
+	Total   int    // Total score for blue area
 }
 
 type BonusArea struct {
 	FoxCount int
-	Rerolls  int
-	ExtraDie bool
+	Bonus    int // Calculated as lowest_section_score * FoxCount
 }
 
 func NewScoreSheet() *ScoreSheet {
@@ -61,21 +65,28 @@ func NewScoreSheet() *ScoreSheet {
 		},
 		Bonus: &BonusArea{
 			FoxCount: 0,
-			Rerolls:  0,
-			ExtraDie: false,
+			Bonus:    0,
 		},
 	}
 }
 
 func (ss *ScoreSheet) GetTotalScore() int {
-	total := 0
-	total += calculateYellowScore(ss.Yellow)
-	total += calculateGreenScore(ss.Green)
-	total += calculateOrangeScore(ss.Orange)
-	total += calculatePurpleScore(ss.Purple)
-	total += calculateBlueScore(ss.Blue)
-	total += calculateBonusScore(ss.Bonus)
-	return total
+	return ss.Yellow.Total + ss.Green.Total + ss.Orange.Total + ss.Purple.Total + ss.Blue.Total + ss.Bonus.Bonus
+}
+
+func (ss *ScoreSheet) CalculateBonus() {
+	// Calculate bonus as lowest section score * fox count
+	sections := []int{ss.Yellow.Total, ss.Green.Total, ss.Orange.Total, ss.Purple.Total, ss.Blue.Total}
+
+	// Find lowest non-zero section
+	lowest := 0
+	for _, section := range sections {
+		if section > 0 && (lowest == 0 || section < lowest) {
+			lowest = section
+		}
+	}
+
+	ss.Bonus.Bonus = lowest * ss.Bonus.FoxCount
 }
 
 func calculateYellowScore(yellow *YellowScoreArea) int {
@@ -182,10 +193,5 @@ func calculateBlueScore(blue *BlueScoreArea) int {
 }
 
 func calculateBonusScore(bonus *BonusArea) int {
-	score := 0
-	score += bonus.FoxCount * 5
-	if bonus.ExtraDie {
-		score += 10
-	}
-	return score
+	return bonus.Bonus
 }
