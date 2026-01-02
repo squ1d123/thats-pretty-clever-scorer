@@ -1,7 +1,7 @@
 package game
 
-type ScoreTotal struct {
-	Total int
+type ScoreArea interface {
+	Record(int)
 }
 
 type ScoreSheet struct {
@@ -14,33 +14,57 @@ type ScoreSheet struct {
 }
 
 type YellowScoreArea struct {
-	ScoreTotal
+	Total   int
 	Columns [6][]bool // 6 columns, each with numbers 1-6
 }
 
+func (ysa *YellowScoreArea) Record(score int) {
+	ysa.Total = score
+}
+
 type GreenScoreArea struct {
-	ScoreTotal
+	Total   int
 	Numbers []bool // 11 numbers: 2,3,4,5,6,7,8,9,10,11,12
 }
 
+func (gsa *GreenScoreArea) Record(score int) {
+	gsa.Total = score
+}
+
 type OrangeScoreArea struct {
-	ScoreTotal
+	Total   int
 	Numbers []int // 11 spaces for any numbers
 }
 
+func (osa *OrangeScoreArea) Record(score int) {
+	osa.Total = score
+}
+
 type PurpleScoreArea struct {
-	ScoreTotal
+	Total   int
 	Numbers []bool // 11 numbers: 1-11, with special 6 reset
 }
 
+func (psa *PurpleScoreArea) Record(score int) {
+	psa.Total = score
+}
+
 type BlueScoreArea struct {
-	ScoreTotal
+	Total   int
 	Numbers []bool // 11 numbers: 1-11
 }
 
+func (bsa *BlueScoreArea) Record(score int) {
+	bsa.Total = score
+}
+
 type BonusArea struct {
-	ScoreTotal // Calculated as lowest_section_score * FoxCount
-	FoxCount   int
+	Total    int // Calculated as lowest_section_score * FoxCount
+	FoxCount int
+}
+
+func (bas *BonusArea) Record(score int) {
+	bas.FoxCount = score
 }
 
 func NewScoreSheet() *ScoreSheet {

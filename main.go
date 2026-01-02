@@ -72,8 +72,8 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 			label := o.(*widget.Label)
-			playerText := gm.Players[i].GetScoreText()
-			label.SetText("  " + playerText + "  ")
+			playerName := gm.Players[i].Name
+			label.SetText("  " + playerName + "  ")
 		},
 	)
 

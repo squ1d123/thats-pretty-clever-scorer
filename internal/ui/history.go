@@ -89,16 +89,14 @@ func CreateGameHistoryScreen(db *storage.Database, onGameSelected func(gameID st
 		loadGames()
 	}
 
-	// Create controls container
-	controls := container.NewHBox(
-		searchEntry,
-		sortSelect,
-	)
+	// Load initial games
+	loadGames()
 
 	// Main layout with navigation bar
 	content := container.NewVBox(
 		CreateNavigationBar("📊 Game History", onBack),
-		controls,
+		searchEntry,
+		sortSelect,
 		widget.NewSeparator(),
 		gameList,
 	)

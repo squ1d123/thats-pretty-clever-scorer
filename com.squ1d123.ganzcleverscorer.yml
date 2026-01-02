@@ -1,0 +1,63 @@
+Categories:
+  - Games
+License: MIT
+AuthorName: Sameer Magan
+AuthorEmail: sameer@example.com
+WebSite: https://github.com/squ1d123/thats-pretty-clever-scorer
+SourceCode: https://github.com/squ1d123/thats-pretty-clever-scorer
+IssueTracker: https://github.com/squ1d123/thats-pretty-clever-scorer/issues
+Summary: Comprehensive scoring app for Ganz Schön Clever dice game
+Description: |
+  A complete scoring application for the popular strategic dice game "Ganz Schön Clever" (That's Pretty Clever), built specifically for board game enthusiasts.
+
+  Features:
+  • Multi-player support for 1-4 players with real-time score tracking
+  • Complete implementation of all scoring areas including yellow, green, orange, purple, blue sections
+  • Automatic bonus calculation and winner determination with visual feedback
+  • Fox tracking and special bonus scoring
+  • Game history with detailed breakdowns and search functionality
+  • High scores leaderboard with top 10 rankings and medal displays
+  • Clean, intuitive interface optimized for both touch and mouse input
+  • Completely offline - no internet connection required
+  • Cross-platform support with responsive design
+
+  Perfect for game nights, tournaments, or casual play sessions. Keep track of your Ganz Schön Clever games effortlessly and focus on the strategy rather than manual calculations.
+
+RepoType: git
+Repo: https://github.com/squ1d123/thats-pretty-clever-scorer.git
+
+Builds:
+  - versionName: '1.0.0'
+    versionCode: 12
+    commit: v1.0.0
+    prebuild: |
+      # Install Fyne CLI
+      go install fyne.io/fyne/v2/cmd/fyne@latest
+    build: |
+      # Build Android APK using Fyne
+      fyne package -os android -name "GanzCleverScorer" -appID "com.squ1d123.ganzcleverscorer" -icon Icon.png -version 1.0.0 -build 12
+    output: GanzCleverScorer.apk
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: '|\+(\d+)|\s*(\d+\.\d+\.\d+)'
+CurrentVersion: '1.0.0'
+CurrentVersionCode: 12
+
+# No anti-features - this app is completely free and respects user privacy
+AntiFeatures: []
+
+# Maintainer Notes
+MaintainerNotes: |
+  This app is built using Go with the Fyne UI framework for cross-platform compatibility.
+  The build process uses the Fyne CLI to package the application for Android.
+  
+  Key requirements for successful builds:
+  - Go 1.24+ should be available in the build environment
+  - Fyne CLI is installed during prebuild phase
+  - App icon should be present as Icon.png in repo root
+  - Build produces standard Android APK with proper package name
+  
+  The app is completely offline and does not require any special permissions,
+  making it ideal for privacy-conscious users. All game data is stored locally
+  using SQLite database embedded in the application.

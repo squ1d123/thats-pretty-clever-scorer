@@ -38,7 +38,7 @@ func (gm *GameManager) UpdatePlayerName(index int, newName string) {
 	}
 }
 
-func updateTotalsFunc(sa *game.ScoreTotal, player *game.Player, updateDisplays func()) func(string) {
+func updateTotalsFunc(sa game.ScoreArea, player *game.Player, updateDisplays func()) func(string) {
 	return func(value string) {
 		// If value is unset, set it to 0
 		if value == "" {
@@ -46,7 +46,7 @@ func updateTotalsFunc(sa *game.ScoreTotal, player *game.Player, updateDisplays f
 		}
 
 		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			sa.Total = num
+			sa.Record(num)
 			player.ScoreSheet.CalculateBonus()
 			updateDisplays()
 		}
@@ -83,24 +83,12 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 	}
 
 	// Update displays when any entry changes
-	yellowEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Yellow.ScoreTotal, player, updateDisplays)
-	greenEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Green.ScoreTotal, player, updateDisplays)
-	orangeEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Orange.ScoreTotal, player, updateDisplays)
-	purpleEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Purple.ScoreTotal, player, updateDisplays)
-	blueEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Blue.ScoreTotal, player, updateDisplays)
-
-	foxEntry.OnChanged = func(value string) {
-		// If value is unset, set it to 0
-		if value == "" {
-			value = "0"
-		}
-
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Bonus.FoxCount = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
+	yellowEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Yellow, player, updateDisplays)
+	greenEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Green, player, updateDisplays)
+	orangeEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Orange, player, updateDisplays)
+	purpleEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Purple, player, updateDisplays)
+	blueEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Blue, player, updateDisplays)
+	foxEntry.OnChanged = updateTotalsFunc(player.ScoreSheet.Bonus, player, updateDisplays)
 
 	// Initial update
 	updateDisplays()
