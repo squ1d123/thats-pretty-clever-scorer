@@ -92,9 +92,8 @@ func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func())
 
 	buttons := container.NewHBox(backToHistoryBtn, deleteBtn)
 
-	// Main layout with navigation bar
+	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewScroll(container.NewVBox(
-		CreateNavigationBar("📊 Game Details", onBack),
 		metadataContainer,
 		widget.NewSeparator(),
 		container.NewVBox(playerCards...),

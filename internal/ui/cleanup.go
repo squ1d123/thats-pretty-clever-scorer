@@ -127,9 +127,8 @@ func CreateCleanupScreen(db *storage.Database, onBack func(), window fyne.Window
 		fyne.TextStyle{Bold: true, Italic: true},
 	)
 
-	// Main layout with navigation bar
+	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewVBox(
-		CreateNavigationBar("🧹 Data Management", onBack),
 		statsLabel,
 		widget.NewSeparator(),
 		optionsTitle,

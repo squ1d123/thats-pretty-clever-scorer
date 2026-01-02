@@ -73,7 +73,7 @@ func CreateMainMenu(app fyne.App, window fyne.Window, db *storage.Database, onSc
 		exitBtn,
 	)
 
-	// Main layout
+	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewVBox(
 		titleLabel,
 		widget.NewSeparator(),
@@ -136,9 +136,8 @@ func CreateHighScoresScreen(db *storage.Database, onBack func()) fyne.CanvasObje
 		}
 	}
 
-	// Main layout with navigation bar
+	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewVBox(
-		CreateNavigationBar("🏅 High Scores", onBack),
 		container.NewVBox(scoreWidgets...),
 	)
 

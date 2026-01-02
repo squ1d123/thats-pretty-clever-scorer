@@ -92,9 +92,8 @@ func CreateGameHistoryScreen(db *storage.Database, onGameSelected func(gameID st
 	// Load initial games
 	loadGames()
 
-	// Main layout with navigation bar
+	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewVBox(
-		CreateNavigationBar("📊 Game History", onBack),
 		searchEntry,
 		sortSelect,
 		widget.NewSeparator(),
