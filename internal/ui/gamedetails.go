@@ -94,9 +94,7 @@ func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func())
 
 	// Main layout with navigation bar
 	content := container.NewScroll(container.NewVBox(
-		CreateNavigationBar("📊 Game Details", func() {
-			// Navigate to main menu from details screen
-		}),
+		CreateNavigationBar("📊 Game Details", onBack),
 		metadataContainer,
 		widget.NewSeparator(),
 		container.NewVBox(playerCards...),

@@ -90,7 +90,7 @@ func ToPlayer(gamePlayer *game.Player, gameID int) *Player {
 		PurpleTotal: gamePlayer.ScoreSheet.Purple.Total,
 		BlueTotal:   gamePlayer.ScoreSheet.Blue.Total,
 		FoxCount:    gamePlayer.ScoreSheet.Bonus.FoxCount,
-		Bonus:       gamePlayer.ScoreSheet.Bonus.Bonus,
+		Bonus:       gamePlayer.ScoreSheet.Bonus.Total,
 	}
 }
 

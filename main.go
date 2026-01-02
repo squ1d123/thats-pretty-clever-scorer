@@ -34,26 +34,22 @@ func main() {
 
 // navigateToMainMenu creates and displays the main menu
 func navigateToMainMenu(app fyne.App, window fyne.Window, db *storage.Database) {
+	navMainMenuFunc := func() {
+		navigateToMainMenu(app, window, db)
+	}
+
 	mainMenu := ui.CreateMainMenu(app, window, db, func(screen string) {
 		switch screen {
 		case "setup":
 			window.SetContent(createSetupScreen(app, window, db))
 		case "history":
 			window.SetContent(ui.CreateGameHistoryScreen(db, func(gameID string) {
-				window.SetContent(ui.CreateGameDetailsScreen(db, gameID, func() {
-					navigateToMainMenu(app, window, db)
-				}))
-			}, func() {
-				navigateToMainMenu(app, window, db)
-			}))
+				window.SetContent(ui.CreateGameDetailsScreen(db, gameID, navMainMenuFunc))
+			}, navMainMenuFunc))
 		case "highscores":
-			window.SetContent(ui.CreateHighScoresScreen(db, func() {
-				navigateToMainMenu(app, window, db)
-			}))
+			window.SetContent(ui.CreateHighScoresScreen(db, navMainMenuFunc))
 		case "cleanup":
-			window.SetContent(ui.CreateCleanupScreen(db, func() {
-				navigateToMainMenu(app, window, db)
-			}, window))
+			window.SetContent(ui.CreateCleanupScreen(db, navMainMenuFunc, window))
 		}
 	})
 	window.SetContent(mainMenu)
@@ -100,8 +96,15 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 	subtitleLabel := widget.NewLabelWithStyle("Track your scores for the popular dice game!", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
 	subtitleLabel.Importance = widget.MediumImportance
 
-	playerContent := container.NewBorder(
+	// Create main layout with navigation
+	navBar := ui.CreateNavigationBar("🎮 Game Setup", func() {
+		navigateToMainMenu(app, window, db)
+	})
+
+	content := container.NewBorder(
 		container.NewVBox(
+			navBar,
+			subtitleLabel,
 			widget.NewSeparator(),
 			widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			container.NewVBox(
@@ -109,25 +112,13 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 				addPlayerBtn,
 			),
 			widget.NewSeparator(),
+			widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		),
 		container.NewVBox(
 			startCalculatorBtn,
 		),
 		nil, nil,
-		container.NewBorder(widget.NewLabelWithStyle("📋 Current Players:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			nil, nil, playerList,
-		),
-	)
-
-	// Create main layout with navigation
-	navBar := ui.CreateNavigationBar("🎮 Game Setup", func() {
-		navigateToMainMenu(app, window, db)
-	})
-
-	content := container.NewVBox(
-		navBar,
-		subtitleLabel,
-		playerContent,
+		playerList,
 	)
 
 	return container.NewPadded(content)

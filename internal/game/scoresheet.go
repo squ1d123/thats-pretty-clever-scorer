@@ -1,5 +1,9 @@
 package game
 
+type ScoreTotal struct {
+	Total int
+}
+
 type ScoreSheet struct {
 	Yellow *YellowScoreArea
 	Green  *GreenScoreArea
@@ -10,33 +14,33 @@ type ScoreSheet struct {
 }
 
 type YellowScoreArea struct {
+	ScoreTotal
 	Columns [6][]bool // 6 columns, each with numbers 1-6
-	Total   int       // Total score for yellow area
 }
 
 type GreenScoreArea struct {
+	ScoreTotal
 	Numbers []bool // 11 numbers: 2,3,4,5,6,7,8,9,10,11,12
-	Total   int    // Total score for green area
 }
 
 type OrangeScoreArea struct {
+	ScoreTotal
 	Numbers []int // 11 spaces for any numbers
-	Total   int   // Total score for orange area
 }
 
 type PurpleScoreArea struct {
+	ScoreTotal
 	Numbers []bool // 11 numbers: 1-11, with special 6 reset
-	Total   int    // Total score for purple area
 }
 
 type BlueScoreArea struct {
+	ScoreTotal
 	Numbers []bool // 11 numbers: 1-11
-	Total   int    // Total score for blue area
 }
 
 type BonusArea struct {
-	FoxCount int
-	Bonus    int // Calculated as lowest_section_score * FoxCount
+	ScoreTotal // Calculated as lowest_section_score * FoxCount
+	FoxCount   int
 }
 
 func NewScoreSheet() *ScoreSheet {
@@ -65,13 +69,12 @@ func NewScoreSheet() *ScoreSheet {
 		},
 		Bonus: &BonusArea{
 			FoxCount: 0,
-			Bonus:    0,
 		},
 	}
 }
 
 func (ss *ScoreSheet) GetTotalScore() int {
-	return ss.Yellow.Total + ss.Green.Total + ss.Orange.Total + ss.Purple.Total + ss.Blue.Total + ss.Bonus.Bonus
+	return ss.Yellow.Total + ss.Green.Total + ss.Orange.Total + ss.Purple.Total + ss.Blue.Total + ss.Bonus.Total
 }
 
 func (ss *ScoreSheet) CalculateBonus() {
@@ -86,14 +89,14 @@ func (ss *ScoreSheet) CalculateBonus() {
 		}
 	}
 
-	ss.Bonus.Bonus = lowest * ss.Bonus.FoxCount
+	ss.Bonus.Total = lowest * ss.Bonus.FoxCount
 }
 
 func calculateYellowScore(yellow *YellowScoreArea) int {
 	score := 0
-	for col := 0; col < 6; col++ {
+	for col := range 6 {
 		columnComplete := true
-		for row := 0; row < 6; row++ {
+		for row := range 6 {
 			if !yellow.Columns[col][row] {
 				columnComplete = false
 				break
@@ -110,7 +113,7 @@ func calculateGreenScore(green *GreenScoreArea) int {
 	score := 0
 	consecutiveCount := 0
 
-	for i := 0; i < len(green.Numbers); i++ {
+	for i := range green.Numbers {
 		if green.Numbers[i] {
 			consecutiveCount++
 		} else {
@@ -193,5 +196,5 @@ func calculateBlueScore(blue *BlueScoreArea) int {
 }
 
 func calculateBonusScore(bonus *BonusArea) int {
-	return bonus.Bonus
+	return bonus.Total
 }

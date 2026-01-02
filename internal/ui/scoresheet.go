@@ -1,12 +1,14 @@
 package ui
 
 import (
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 	"slices"
 	"strconv"
 	"thats-pretty-clever-scorer/internal/game"
+	cWidget "thats-pretty-clever-scorer/internal/widget"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 type GameManager struct {
@@ -36,67 +38,40 @@ func (gm *GameManager) UpdatePlayerName(index int, newName string) {
 	}
 }
 
+func updateTotalsFunc(sa *game.ScoreTotal, player *game.Player, updateDisplays func()) func(string) {
+	return func(value string) {
+		// If value is unset, set it to 0
+		if value == "" {
+			value = "0"
+		}
+
+		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
+			sa.Total = num
+			player.ScoreSheet.CalculateBonus()
+			updateDisplays()
+		}
+	}
+}
+
 func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.CanvasObject {
 	// Create section inputs
-	yellowEntry := widget.NewEntry()
+	yellowEntry := cWidget.NewNumericalEntry()
 	yellowEntry.SetPlaceHolder("0")
-	yellowEntry.SetText(strconv.Itoa(player.ScoreSheet.Yellow.Total))
-	yellowEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Yellow.Total = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
-	greenEntry := widget.NewEntry()
+	greenEntry := cWidget.NewNumericalEntry()
 	greenEntry.SetPlaceHolder("0")
-	greenEntry.SetText(strconv.Itoa(player.ScoreSheet.Green.Total))
-	greenEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Green.Total = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
-	orangeEntry := widget.NewEntry()
+	orangeEntry := cWidget.NewNumericalEntry()
 	orangeEntry.SetPlaceHolder("0")
-	orangeEntry.SetText(strconv.Itoa(player.ScoreSheet.Orange.Total))
-	orangeEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Orange.Total = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
-	purpleEntry := widget.NewEntry()
+	purpleEntry := cWidget.NewNumericalEntry()
 	purpleEntry.SetPlaceHolder("0")
-	purpleEntry.SetText(strconv.Itoa(player.ScoreSheet.Purple.Total))
-	purpleEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Purple.Total = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
-	blueEntry := widget.NewEntry()
+	blueEntry := cWidget.NewNumericalEntry()
 	blueEntry.SetPlaceHolder("0")
-	blueEntry.SetText(strconv.Itoa(player.ScoreSheet.Blue.Total))
-	blueEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Blue.Total = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
-	foxEntry := widget.NewEntry()
+	foxEntry := cWidget.NewNumericalEntry()
 	foxEntry.SetPlaceHolder("0")
-	foxEntry.SetText(strconv.Itoa(player.ScoreSheet.Bonus.FoxCount))
-	foxEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Bonus.FoxCount = num
-			player.ScoreSheet.CalculateBonus()
-		}
-	}
 
 	// Auto-calculated display
 	totalLabel := widget.NewLabelWithStyle("0", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -104,51 +79,22 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 
 	updateDisplays := func() {
 		totalLabel.SetText(strconv.Itoa(player.GetTotalScore()))
-		bonusLabel.SetText(strconv.Itoa(player.ScoreSheet.Bonus.Bonus))
+		bonusLabel.SetText(strconv.Itoa(player.ScoreSheet.Bonus.Total))
 	}
 
 	// Update displays when any entry changes
-	yellowEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Yellow.Total = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
-
-	greenEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Green.Total = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
-
-	orangeEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Orange.Total = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
-
-	purpleEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Purple.Total = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
-
-	blueEntry.OnChanged = func(value string) {
-		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
-			player.ScoreSheet.Blue.Total = num
-			player.ScoreSheet.CalculateBonus()
-			updateDisplays()
-		}
-	}
+	yellowEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Yellow.ScoreTotal, player, updateDisplays)
+	greenEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Green.ScoreTotal, player, updateDisplays)
+	orangeEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Orange.ScoreTotal, player, updateDisplays)
+	purpleEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Purple.ScoreTotal, player, updateDisplays)
+	blueEntry.OnChanged = updateTotalsFunc(&player.ScoreSheet.Blue.ScoreTotal, player, updateDisplays)
 
 	foxEntry.OnChanged = func(value string) {
+		// If value is unset, set it to 0
+		if value == "" {
+			value = "0"
+		}
+
 		if num, err := strconv.Atoi(value); err == nil && num >= 0 {
 			player.ScoreSheet.Bonus.FoxCount = num
 			player.ScoreSheet.CalculateBonus()
@@ -164,22 +110,22 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 		widget.NewLabelWithStyle("👤 "+player.Name, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🟡:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟡Yellow:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			yellowEntry,
-			widget.NewLabelWithStyle("🟢:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟢Green:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			greenEntry,
-			widget.NewLabelWithStyle("🟠:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟠Orange:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			orangeEntry,
-			widget.NewLabelWithStyle("🟣:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🟣Purple:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			purpleEntry,
-			widget.NewLabelWithStyle("🔵:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🔵Blue:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			blueEntry,
 		),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🦊:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("🦊Foxes:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			foxEntry,
-			widget.NewLabelWithStyle("⭐:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("⭐Bonus:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			bonusLabel,
 		),
 		widget.NewSeparator(),

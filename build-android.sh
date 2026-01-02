@@ -48,6 +48,7 @@ build_app() {
     rm -rf bin/GanzCleverScorer.apk
     
     # Build Android APK
+    export FYNE_FONT=/usr/share/fonts/noto/NotoColorEmoji.ttf
     fyne package -os android
     
     if [ -f "GanzCleverScorer.apk" ]; then
