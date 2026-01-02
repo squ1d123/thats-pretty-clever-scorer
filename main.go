@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/driver/mobile"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -32,6 +33,18 @@ func main() {
 
 	// Show main menu with navigation container
 	setupNavigation(myApp, myWindow, db)
+
+	// Handle back button on mobile devices
+	if fyne.CurrentDevice().IsMobile() {
+		myWindow.Canvas().SetOnTypedKey(func(ev *fyne.KeyEvent) {
+			if ev.Name == mobile.KeyBack {
+				// globalNav should be initialized at this point from setupNavigation
+				if globalNav != nil {
+					globalNav.Back()
+				}
+			}
+		})
+	}
 	myWindow.ShowAndRun()
 }
 
