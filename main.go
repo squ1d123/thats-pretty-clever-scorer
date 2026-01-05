@@ -151,28 +151,28 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 					playerList.Refresh()
 					// Clear search after adding
 					searchEntry.SetText("")
-					// Refresh recent players asynchronously
-					go func() {
-						newPlayers, _ := db.GetRecentPlayerNames(5)
-						recentPlayers = newPlayers
-						updatePlayerButtons(newPlayers)
-					}()
+					newPlayers, _ := db.GetRecentPlayerNames(5)
+					recentPlayers = newPlayers
+					updatePlayerButtons(newPlayers)
 				})
 				buttonGrid.Add(playerBtn)
 			}
 			playerButtonsContainer.Add(buttonGrid)
 		}
-		playerButtonsContainer.Refresh()
+		// This will async refresh the container UI
+		fyne.Do(func() {
+			playerButtonsContainer.Refresh()
+		})
 	}
 
 	// Load recent players asynchronously
-	go func() {
+	time.AfterFunc(50*time.Millisecond, func() {
 		players, err := db.GetRecentPlayerNames(5)
 		if err == nil {
 			recentPlayers = players
 			updatePlayerButtons(players)
 		}
-	}()
+	})
 
 	// Set up live search with debouncing
 	searchEntry.OnChanged = func(text string) {
@@ -186,12 +186,10 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 		}
 
 		searchDebouncer = time.AfterFunc(300*time.Millisecond, func() {
-			go func() {
-				players, err := db.SearchPlayerNames(text, 20)
-				if err == nil {
-					updatePlayerButtons(players)
-				}
-			}()
+			players, err := db.SearchPlayerNames(text, 20)
+			if err == nil {
+				updatePlayerButtons(players)
+			}
 		})
 	}
 
