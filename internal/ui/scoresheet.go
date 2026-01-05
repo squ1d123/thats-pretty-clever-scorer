@@ -128,7 +128,7 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 			bonusLabel,
 		),
 		widget.NewSeparator(),
-		container.NewHBox(
+		container.NewGridWithColumns(2,
 			createIcon(assets.ResourceTargetSvg),
 			totalLabel,
 		),
