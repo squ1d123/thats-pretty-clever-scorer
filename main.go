@@ -78,7 +78,7 @@ func navigateToScreen(app fyne.App, window fyne.Window, db *storage.Database, sc
 		historyScreen := ui.CreateGameHistoryScreen(db, func(gameID string) {
 			detailsScreen := ui.CreateGameDetailsScreen(db, gameID, func() {
 				globalNav.Back() // Go back to history
-			})
+			}, window)
 			globalNav.PushWithTitle(detailsScreen, "📊 Game Details")
 		}, func() {
 			globalNav.Back() // Go back to main menu

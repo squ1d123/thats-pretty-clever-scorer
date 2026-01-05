@@ -38,7 +38,7 @@ func createColoredLabel(text string, colorName string) *widget.Label {
 }
 
 // CreateGameDetailsScreen creates a screen to view detailed game information
-func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func()) fyne.CanvasObject {
+func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func(), window fyne.Window) fyne.CanvasObject {
 
 	// Load game data
 	game, err := db.GetGameByID(gameID)
@@ -81,7 +81,7 @@ func CreateGameDetailsScreen(db *storage.Database, gameID string, onBack func())
 
 	// Create button container
 	deleteBtn := widget.NewButton("🗑️ Delete Game", func() {
-		showDeleteConfirmation(db, gameID, onBack)
+		showDeleteConfirmation(db, gameID, onBack, window)
 	})
 	deleteBtn.Importance = widget.DangerImportance
 
@@ -168,7 +168,7 @@ func createPlayerDetailCard(player *storage.Player, isWinner bool) fyne.CanvasOb
 }
 
 // showDeleteConfirmation shows a confirmation dialog before deleting a game
-func showDeleteConfirmation(db *storage.Database, gameID string, onBack func()) {
+func showDeleteConfirmation(db *storage.Database, gameID string, onBack func(), window fyne.Window) {
 
 	confirmDialog := dialog.NewConfirm(
 		"Delete Game",
@@ -181,12 +181,12 @@ func showDeleteConfirmation(db *storage.Database, gameID string, onBack func()) 
 					dialog.ShowError(fmt.Errorf("Failed to delete game: %v", err), nil)
 				} else {
 					// Show success and go back
-					dialog.ShowInformation("Game Deleted", "The game has been successfully deleted.", nil)
+					dialog.ShowInformation("Game Deleted", "The game has been successfully deleted.", window)
 					onBack()
 				}
 			}
 		},
-		nil,
+		window,
 	)
 
 	confirmDialog.SetDismissText("Cancel")
