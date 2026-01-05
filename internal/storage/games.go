@@ -419,3 +419,63 @@ func (d *Database) DeleteGamesInDateRange(startDate, endDate time.Time) (int, er
 
 	return len(gameIDs), tx.Commit()
 }
+
+// GetRecentPlayerNames returns the most recently used distinct player names
+func (d *Database) GetRecentPlayerNames(limit int) ([]string, error) {
+	query := `
+		SELECT DISTINCT p.name 
+		FROM players p 
+		JOIN games g ON p.game_id = g.id 
+		ORDER BY g.created_at DESC 
+		LIMIT ?
+	`
+
+	rows, err := d.DB.Query(query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query recent players: %w", err)
+	}
+	defer rows.Close()
+
+	var names []string
+	for rows.Next() {
+		var name string
+		err := rows.Scan(&name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan player name: %w", err)
+		}
+		names = append(names, name)
+	}
+
+	return names, nil
+}
+
+// SearchPlayerNames performs live search with pattern matching on player names
+func (d *Database) SearchPlayerNames(searchTerm string, limit int) ([]string, error) {
+	query := `
+		SELECT DISTINCT p.name 
+		FROM players p 
+		JOIN games g ON p.game_id = g.id 
+		WHERE p.name LIKE ? 
+		ORDER BY g.created_at DESC 
+		LIMIT ?
+	`
+
+	pattern := "%" + searchTerm + "%"
+	rows, err := d.DB.Query(query, pattern, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search player names: %w", err)
+	}
+	defer rows.Close()
+
+	var names []string
+	for rows.Next() {
+		var name string
+		err := rows.Scan(&name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan player name: %w", err)
+		}
+		names = append(names, name)
+	}
+
+	return names, nil
+}

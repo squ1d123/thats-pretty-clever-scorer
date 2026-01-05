@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"thats-pretty-clever-scorer/internal/storage"
 	"thats-pretty-clever-scorer/internal/ui"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -99,6 +100,11 @@ func navigateToScreen(app fyne.App, window fyne.Window, db *storage.Database, sc
 func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) fyne.CanvasObject {
 	gm := ui.NewGameManager()
 
+	// Setup state for search and recent players
+	var recentPlayers []string
+	var searchDebouncer *time.Timer
+
+	// Manual entry field
 	playerEntry := widget.NewEntry()
 	playerEntry.SetPlaceHolder("Enter player name")
 	playerEntry.Resize(fyne.NewSize(200, 40))
@@ -118,11 +124,88 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 		},
 	)
 
+	// Search entry field
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("🔍 Search players...")
+
+	// Recent/search players container
+	playerButtonsContainer := container.NewVBox()
+
+	// Declare updatePlayerButtons function before use
+	var updatePlayerButtons func([]string)
+
+	updatePlayerButtons = func(players []string) {
+		playerButtonsContainer.RemoveAll()
+		if len(players) == 0 {
+			noPlayersLabel := widget.NewLabel("No previous players found")
+			noPlayersLabel.Alignment = fyne.TextAlignCenter
+			playerButtonsContainer.Add(noPlayersLabel)
+		} else {
+			// Create a grid for player buttons
+			buttonGrid := container.NewGridWithColumns(3)
+			for _, playerName := range players {
+				// Capture playerName to avoid closure issues
+				name := playerName
+				playerBtn := widget.NewButton(name, func() {
+					gm.AddPlayer(name)
+					playerList.Refresh()
+					// Clear search after adding
+					searchEntry.SetText("")
+					// Refresh recent players asynchronously
+					go func() {
+						newPlayers, _ := db.GetRecentPlayerNames(5)
+						recentPlayers = newPlayers
+						updatePlayerButtons(newPlayers)
+					}()
+				})
+				buttonGrid.Add(playerBtn)
+			}
+			playerButtonsContainer.Add(buttonGrid)
+		}
+		playerButtonsContainer.Refresh()
+	}
+
+	// Load recent players asynchronously
+	go func() {
+		players, err := db.GetRecentPlayerNames(5)
+		if err == nil {
+			recentPlayers = players
+			updatePlayerButtons(players)
+		}
+	}()
+
+	// Set up live search with debouncing
+	searchEntry.OnChanged = func(text string) {
+		if searchDebouncer != nil {
+			searchDebouncer.Stop()
+		}
+
+		if text == "" {
+			updatePlayerButtons(recentPlayers)
+			return
+		}
+
+		searchDebouncer = time.AfterFunc(300*time.Millisecond, func() {
+			go func() {
+				players, err := db.SearchPlayerNames(text, 20)
+				if err == nil {
+					updatePlayerButtons(players)
+				}
+			}()
+		})
+	}
+
 	addPlayerBtn := widget.NewButton("Add Player", func() {
 		if playerEntry.Text != "" {
 			gm.AddPlayer(playerEntry.Text)
 			playerList.Refresh()
 			playerEntry.SetText("")
+			// Refresh recent players after adding via manual entry
+			go func() {
+				players, _ := db.GetRecentPlayerNames(5)
+				recentPlayers = players
+				updatePlayerButtons(players)
+			}()
 		}
 	})
 	addPlayerBtn.Importance = widget.MediumImportance
@@ -143,6 +226,11 @@ func createSetupScreen(app fyne.App, window fyne.Window, db *storage.Database) f
 			subtitleLabel,
 			widget.NewSeparator(),
 			widget.NewLabelWithStyle("👥 Add Players (1-4 players):", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			searchEntry,
+			widget.NewLabelWithStyle("Quick Add:", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}),
+			playerButtonsContainer,
+			widget.NewSeparator(),
+			widget.NewLabelWithStyle("Or Enter Name:", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}),
 			container.NewVBox(
 				playerEntry,
 				addPlayerBtn,
