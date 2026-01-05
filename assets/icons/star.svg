@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Star shape -->
+  <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z" 
+        fill="#FFD700" stroke="#FFA000" stroke-width="1"/>
+  <!-- Inner star for depth -->
+  <path d="M12 5 L13.5 8.5 L17 9 L14 12 L15 15.5 L12 13 L9 15.5 L10 12 L7 9 L10.5 8.5 Z" 
+        fill="#FFEB3B"/>
+</svg>

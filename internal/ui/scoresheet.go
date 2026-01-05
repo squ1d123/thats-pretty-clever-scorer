@@ -3,10 +3,12 @@ package ui
 import (
 	"slices"
 	"strconv"
+	"thats-pretty-clever-scorer/assets"
 	"thats-pretty-clever-scorer/internal/game"
 	cWidget "thats-pretty-clever-scorer/internal/widget"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
@@ -51,6 +53,15 @@ func updateTotalsFunc(sa game.ScoreArea, player *game.Player, updateDisplays fun
 			updateDisplays()
 		}
 	}
+}
+
+// createIcon creates a label with an SVG icon
+func createIcon(iconResource fyne.Resource) fyne.CanvasObject {
+	icon := canvas.NewImageFromResource(iconResource)
+	icon.Resize(fyne.NewSize(100, 100))
+	icon.FillMode = canvas.ImageFillContain
+
+	return icon
 }
 
 func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.CanvasObject {
@@ -98,27 +109,27 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 		widget.NewLabelWithStyle("👤 "+player.Name, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🟡Yellow:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceYellowSvg),
 			yellowEntry,
-			widget.NewLabelWithStyle("🟢Green:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceGreenSvg),
 			greenEntry,
-			widget.NewLabelWithStyle("🟠Orange:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceOrangeSvg),
 			orangeEntry,
-			widget.NewLabelWithStyle("🟣Purple:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourcePurpleSvg),
 			purpleEntry,
-			widget.NewLabelWithStyle("🔵Blue:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceBlueSvg),
 			blueEntry,
 		),
 		widget.NewSeparator(),
 		container.NewGridWithColumns(2,
-			widget.NewLabelWithStyle("🦊Foxes:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceFoxSvg),
 			foxEntry,
-			widget.NewLabelWithStyle("⭐Bonus:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceStarSvg),
 			bonusLabel,
 		),
 		widget.NewSeparator(),
 		container.NewHBox(
-			widget.NewLabelWithStyle("🎯 Total:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			createIcon(assets.ResourceTargetSvg),
 			totalLabel,
 		),
 	)
