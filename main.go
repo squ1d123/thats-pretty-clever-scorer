@@ -238,7 +238,7 @@ func createFinalScoresScreen(app fyne.App, window fyne.Window, gm *ui.GameManage
 	})
 	newGameBtn.Importance = widget.HighImportance
 
-	backToCalculatorBtn := widget.NewButton("📊 Back to Calculator", func() {
+	backToCalculatorBtn := widget.NewButton("📊 Calculator", func() {
 		globalNav.Back() // Go back to calculator
 	})
 	backToCalculatorBtn.Importance = widget.MediumImportance
