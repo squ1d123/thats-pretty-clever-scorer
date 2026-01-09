@@ -42,14 +42,18 @@ check_requirements() {
 
 # Build the application
 build_app() {
-    echo -e "${BLUE}🔨 Building Android APK...${NC}"
+    echo -e "${BLUE}🔨 Building Optimized Android APK...${NC}"
     
     # Clean previous builds
     rm -rf bin/GanzCleverScorer.apk
     
-    # Build Android APK
-    export FYNE_FONT=/usr/share/fonts/noto/NotoColorEmoji.ttf
-    fyne package -os android
+    # Performance optimizations for Android
+    # export CGO_ENABLED=1
+    export GOOS=android
+    export GOARCH=arm64  # Target modern ARM64 architecture for better performance
+    
+    # Build Android APK with optimizations
+    fyne package -os android -release
     
     if [ -f "GanzCleverScorer.apk" ]; then
         echo -e "${GREEN}✅ Build successful!${NC}"

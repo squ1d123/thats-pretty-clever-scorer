@@ -3,6 +3,7 @@ package ui
 import (
 	"slices"
 	"strconv"
+	"sync"
 	"thats-pretty-clever-scorer/assets"
 	"thats-pretty-clever-scorer/internal/game"
 	cWidget "thats-pretty-clever-scorer/internal/widget"
@@ -12,6 +13,42 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
+
+// Icon cache for performance optimization
+type iconCache struct {
+	mu    sync.RWMutex
+	icons map[fyne.Resource]fyne.CanvasObject
+}
+
+var (
+	globalIconCache = &iconCache{
+		icons: make(map[fyne.Resource]fyne.CanvasObject),
+	}
+)
+
+// getIcon returns a cached icon for better performance
+func (ic *iconCache) getIcon(resource fyne.Resource) fyne.CanvasObject {
+	ic.mu.RLock()
+	if icon, exists := ic.icons[resource]; exists {
+		ic.mu.RUnlock()
+		return icon
+	}
+	ic.mu.RUnlock()
+
+	// Create and cache the icon
+	ic.mu.Lock()
+	defer ic.mu.Unlock()
+
+	// Double-check after acquiring write lock
+	if icon, exists := ic.icons[resource]; exists {
+		return icon
+	}
+
+	icon := canvas.NewImageFromResource(resource)
+	icon.FillMode = canvas.ImageFillContain
+	ic.icons[resource] = icon
+	return icon
+}
 
 type GameManager struct {
 	Players []*game.Player
@@ -55,13 +92,9 @@ func updateTotalsFunc(sa game.ScoreArea, player *game.Player, updateDisplays fun
 	}
 }
 
-// createIcon creates a label with an SVG icon
+// createIcon creates a cached icon for better performance
 func createIcon(iconResource fyne.Resource) fyne.CanvasObject {
-	icon := canvas.NewImageFromResource(iconResource)
-	icon.Resize(fyne.NewSize(100, 100))
-	icon.FillMode = canvas.ImageFillContain
-
-	return icon
+	return globalIconCache.getIcon(iconResource)
 }
 
 func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.CanvasObject {
@@ -104,34 +137,24 @@ func CreatePlayerScoreUI(player *game.Player, index int, gm *GameManager) fyne.C
 	// Initial update
 	updateDisplays()
 
-	// Create compact card layout
+	// Simplified layout for better performance
+	// Use single container with inline arrangement instead of nested grids
 	playerCard := container.NewVBox(
 		widget.NewLabelWithStyle("👤 "+player.Name, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
-		container.NewGridWithColumns(2,
-			createIcon(assets.ResourceYellowSvg),
-			yellowEntry,
-			createIcon(assets.ResourceGreenSvg),
-			greenEntry,
-			createIcon(assets.ResourceOrangeSvg),
-			orangeEntry,
-			createIcon(assets.ResourcePurpleSvg),
-			purpleEntry,
-			createIcon(assets.ResourceBlueSvg),
-			blueEntry,
-		),
+		// Main scoring sections - flattened layout
+		container.NewGridWithColumns(2, createIcon(assets.ResourceYellowSvg), yellowEntry),
+		container.NewGridWithColumns(2, createIcon(assets.ResourceGreenSvg), greenEntry),
+		container.NewGridWithColumns(2, createIcon(assets.ResourceOrangeSvg), orangeEntry),
+		container.NewGridWithColumns(2, createIcon(assets.ResourcePurpleSvg), purpleEntry),
+		container.NewGridWithColumns(2, createIcon(assets.ResourceBlueSvg), blueEntry),
 		widget.NewSeparator(),
-		container.NewGridWithColumns(2,
-			createIcon(assets.ResourceFoxSvg),
-			foxEntry,
-			createIcon(assets.ResourceStarSvg),
-			bonusLabel,
-		),
+		// Bonus section
+		container.NewGridWithColumns(2, createIcon(assets.ResourceFoxSvg), foxEntry),
+		container.NewGridWithColumns(2, createIcon(assets.ResourceStarSvg), bonusLabel),
 		widget.NewSeparator(),
-		container.NewGridWithColumns(2,
-			createIcon(assets.ResourceTargetSvg),
-			totalLabel,
-		),
+		// Total section
+		container.NewGridWithColumns(2, createIcon(assets.ResourceTargetSvg), totalLabel),
 	)
 
 	return playerCard
