@@ -34,12 +34,40 @@ class MainMenuScreen extends ConsumerWidget {
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (stats) => _buildContent(context, stats),
+        data: (stats) => _buildContent(context, stats, ref),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          if (index == 1) {
+            final gameSession = ref.read(gameSessionProvider);
+            if (gameSession.players.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Start a new game first')),
+              );
+            } else {
+              context.push('/calculator');
+            }
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calculate_outlined),
+            selectedIcon: Icon(Icons.calculate),
+            label: 'Calculator',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, Map<String, int> stats) {
+  Widget _buildContent(
+      BuildContext context, Map<String, int> stats, WidgetRef ref) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(

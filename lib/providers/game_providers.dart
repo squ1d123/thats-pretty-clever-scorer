@@ -2,7 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/database_service.dart';
 import '../models/models.dart';
-import '../screens/stats_screen.dart';
+
+enum StatsTimeRange {
+  allTime('All Time', null),
+  lastMonth('Last Month', 1),
+  last3Months('Last 3 Months', 3),
+  last6Months('Last 6 Months', 6),
+  lastYear('Last Year', 12);
+
+  final String label;
+  final int? months;
+  const StatsTimeRange(this.label, this.months);
+}
+
+final statsTimeRangeProvider =
+    StateProvider<StatsTimeRange>((ref) => StatsTimeRange.allTime);
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 

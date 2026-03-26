@@ -170,25 +170,27 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                   ),
                 );
               }),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: players.isEmpty
-                  ? null
-                  : () {
-                      ref.read(gameSessionProvider.notifier).calculateScores();
-                      context.push('/calculator');
-                    },
-              icon: const Icon(Icons.calculate),
-              label: const Text('Open Score Calculator'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
           ],
         ),
       ),
+      bottomNavigationBar: players.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(gameSessionProvider.notifier).calculateScores();
+                  context.push('/calculator');
+                },
+                icon: const Icon(Icons.calculate),
+                label: const Text('Open Score Calculator'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
     );
   }
 }
