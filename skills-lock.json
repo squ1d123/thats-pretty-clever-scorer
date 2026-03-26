@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "flutter-architecting-apps": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "ac8212aa825c75d468c216ffada34302d0ab6e8ffc8e99d789848aba4acd30ed"
+    },
+    "flutter-building-layouts": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "f25c57e933fa78f5e26057be20b8a2edbd9783c654be03198a7cb6c5c2432d12"
+    },
+    "flutter-managing-state": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "7a0f1741895403c42db43d66b535099ce1c0c06126765b1bd5d649f96b16d0bd"
+    },
+    "flutter-testing-apps": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "c3bc3a540534e97cf391710fb8dcdb49b9f4c8a5385597cb56ef9094e56af776"
+    },
+    "flutter-theming-apps": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "df83d4bcd1e98b684eff8fc6ed30c40f6165a377e9733f42a42e496da58bacd4"
+    },
+    "flutter-working-with-databases": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "202626bef016eb0b31aa6ef99d5ba2af8b0722d94a19d0a628a8dc627aa373cd"
+    }
+  }
+}
