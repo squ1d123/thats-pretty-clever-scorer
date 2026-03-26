@@ -172,3 +172,9 @@ final gameDetailsProvider =
   final db = ref.watch(databaseServiceProvider);
   return await db.getGameDetails(uuid);
 });
+
+final gameDetailsByIdProvider =
+    FutureProvider.family<GameSession?, int>((ref, dbId) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getGameDetailsById(dbId);
+});

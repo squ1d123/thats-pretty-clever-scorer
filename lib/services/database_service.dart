@@ -169,6 +169,28 @@ class DatabaseService {
     final gameMap = games.first;
     final gameId = gameMap['id'] as int;
 
+    return _buildGameSession(db, gameId, gameMap);
+  }
+
+  Future<GameSession?> getGameDetailsById(int dbId) async {
+    final db = await database;
+
+    final games = await db.query(
+      'games',
+      where: 'id = ?',
+      whereArgs: [dbId],
+    );
+
+    if (games.isEmpty) return null;
+
+    final gameMap = games.first;
+    final gameId = gameMap['id'] as int;
+
+    return _buildGameSession(db, gameId, gameMap);
+  }
+
+  Future<GameSession?> _buildGameSession(
+      Database db, int gameId, Map<String, dynamic> gameMap) async {
     final players = await db.query(
       'players',
       where: 'game_id = ?',
