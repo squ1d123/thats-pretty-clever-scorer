@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/database_service.dart';
 import '../models/models.dart';
+import '../screens/stats_screen.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
@@ -182,35 +183,41 @@ final gameDetailsByIdProvider =
 final gamesPerMonthProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getGamesPerMonth();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getGamesPerMonth(months: timeRange.months);
 });
 
 final averageScoresProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getAverageScoresByPlayerCount();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getAverageScoresByPlayerCount(months: timeRange.months);
 });
 
 final topPlayersProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getTopPlayers();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getTopPlayers(months: timeRange.months);
 });
 
 final scoreDistributionProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getScoreDistribution();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getScoreDistribution(months: timeRange.months);
 });
 
 final averageScoreByPositionProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getAverageScoreByPlayerPosition();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getAverageScoreByPlayerPosition(months: timeRange.months);
 });
 
 final winPercentageByPlayerProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getWinPercentageByPlayer();
+  final timeRange = ref.watch(statsTimeRangeProvider);
+  return await db.getWinPercentageByPlayer(months: timeRange.months);
 });

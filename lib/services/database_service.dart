@@ -486,22 +486,33 @@ class DatabaseService {
     await db.delete('high_scores');
   }
 
-  Future<List<Map<String, dynamic>>> getGamesPerMonth({int months = 12}) async {
+  Future<List<Map<String, dynamic>>> getGamesPerMonth({int? months}) async {
     final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "WHERE created_at >= date('now', '-$months months')";
+    }
     final result = await db.rawQuery('''
       SELECT 
         strftime('%Y-%m', created_at) as month,
         COUNT(*) as count
       FROM games
-      WHERE created_at >= date('now', '-$months months')
+      $whereClause
       GROUP BY strftime('%Y-%m', created_at)
       ORDER BY month ASC
-    ''');
+    ''', args);
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getAverageScoresByPlayerCount() async {
+  Future<List<Map<String, dynamic>>> getAverageScoresByPlayerCount(
+      {int? months}) async {
     final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "WHERE created_at >= date('now', '-$months months')";
+    }
     final result = await db.rawQuery('''
       SELECT 
         player_count,
@@ -509,92 +520,88 @@ class DatabaseService {
         MAX(winner_score) as max_score,
         COUNT(*) as games
       FROM games
+      $whereClause
       GROUP BY player_count
       ORDER BY player_count ASC
-    ''');
+    ''', args);
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getTopPlayers({int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getTopPlayers(
+      {int limit = 10, int? months}) async {
     final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
     final result = await db.rawQuery('''
       SELECT 
-        name,
-        COUNT(*) as games_played,
-        AVG(final_score) as avg_score,
-        MAX(final_score) as max_score
-      FROM players
-      GROUP BY name
+        p.name,
+        COUNT(p.game_id) as games_played,
+        AVG(p.final_score) as avg_score,
+        MAX(p.final_score) as max_score
+      FROM players p
+      JOIN games g ON p.game_id = g.id
+      WHERE 1=1 $whereClause
+      GROUP BY p.name
       ORDER BY avg_score DESC
       LIMIT ?
-    ''', [limit]);
+    ''', [...args, limit]);
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getScoreDistribution() async {
+  Future<List<Map<String, dynamic>>> getAverageScoreByPlayerPosition(
+      {int? months}) async {
     final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
     final result = await db.rawQuery('''
       SELECT 
-        CASE 
-          WHEN final_score < 50 THEN '0-49'
-          WHEN final_score < 100 THEN '50-99'
-          WHEN final_score < 150 THEN '100-149'
-          WHEN final_score < 200 THEN '150-199'
-          WHEN final_score < 250 THEN '200-249'
-          WHEN final_score < 300 THEN '250-299'
-          ELSE '300+'
-        END as range,
-        COUNT(*) as count
-      FROM players
-      GROUP BY range
-      ORDER BY 
-        CASE range
-          WHEN '0-49' THEN 1
-          WHEN '50-99' THEN 2
-          WHEN '100-149' THEN 3
-          WHEN '150-199' THEN 4
-          WHEN '200-249' THEN 5
-          WHEN '250-299' THEN 6
-          ELSE 7
-        END
-    ''');
-    return result;
-  }
-
-  Future<List<Map<String, dynamic>>> getAverageScoreByPlayerPosition() async {
-    final db = await database;
-    final result = await db.rawQuery('''
-      SELECT 
-        name,
-        AVG(final_score) as avg_score,
-        MAX(final_score) as max_score,
-        COUNT(*) as games_played
-      FROM players
-      GROUP BY name
-      HAVING COUNT(DISTINCT game_id) >= 2
+        p.name,
+        AVG(p.final_score) as avg_score,
+        MAX(p.final_score) as max_score,
+        COUNT(DISTINCT p.game_id) as games_played
+      FROM players p
+      JOIN games g ON p.game_id = g.id
+      WHERE 1=1 $whereClause
+      GROUP BY p.name
+      HAVING COUNT(DISTINCT p.game_id) >= 2
       ORDER BY avg_score DESC
       LIMIT 10
-    ''');
+    ''', args);
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getWinPercentageByPlayer() async {
+  Future<List<Map<String, dynamic>>> getWinPercentageByPlayer(
+      {int? months}) async {
     final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
     final result = await db.rawQuery('''
       SELECT 
         p.name,
         COUNT(p.game_id) as games_played,
         (
           SELECT COUNT(*) FROM players p2 
-          JOIN games g ON p2.game_id = g.id
+          JOIN games g2 ON p2.game_id = g2.id
           WHERE p2.name = p.name AND p2.final_score = (
             SELECT MAX(final_score) FROM players WHERE game_id = p2.game_id
           )
+          AND (1=1 $whereClause)
         ) as wins
       FROM players p
+      JOIN games g ON p.game_id = g.id
+      WHERE 1=1 $whereClause
       GROUP BY p.name
       HAVING COUNT(DISTINCT p.game_id) >= 2
-    ''');
+    ''', args);
 
     final processed = <Map<String, dynamic>>[];
     for (var row in result) {
@@ -613,5 +620,42 @@ class DatabaseService {
         .compareTo((a['win_percentage'] as num?) ?? 0.0));
 
     return processed.take(10).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getScoreDistribution({int? months}) async {
+    final db = await database;
+    String whereClause = '';
+    List<dynamic> args = [];
+    if (months != null) {
+      whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
+    final result = await db.rawQuery('''
+      SELECT 
+        CASE 
+          WHEN p.final_score < 50 THEN '0-49'
+          WHEN p.final_score < 100 THEN '50-99'
+          WHEN p.final_score < 150 THEN '100-149'
+          WHEN p.final_score < 200 THEN '150-199'
+          WHEN p.final_score < 250 THEN '200-249'
+          WHEN p.final_score < 300 THEN '250-299'
+          ELSE '300+'
+        END as range,
+        COUNT(*) as count
+      FROM players p
+      JOIN games g ON p.game_id = g.id
+      WHERE 1=1 $whereClause
+      GROUP BY range
+      ORDER BY 
+        CASE range
+          WHEN '0-49' THEN 1
+          WHEN '50-99' THEN 2
+          WHEN '100-149' THEN 3
+          WHEN '150-199' THEN 4
+          WHEN '200-249' THEN 5
+          WHEN '250-299' THEN 6
+          ELSE 7
+        END
+    ''', args);
+    return result;
   }
 }

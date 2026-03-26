@@ -3,14 +3,55 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/game_providers.dart';
 
+enum StatsTimeRange {
+  allTime('All Time', null),
+  lastMonth('Last Month', 1),
+  last3Months('Last 3 Months', 3),
+  last6Months('Last 6 Months', 6),
+  lastYear('Last Year', 12);
+
+  final String label;
+  final int? months;
+  const StatsTimeRange(this.label, this.months);
+}
+
+final statsTimeRangeProvider =
+    StateProvider<StatsTimeRange>((ref) => StatsTimeRange.allTime);
+
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final timeRange = ref.watch(statsTimeRangeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Statistics'),
+        actions: [
+          PopupMenuButton<StatsTimeRange>(
+            initialValue: timeRange,
+            onSelected: (range) =>
+                ref.read(statsTimeRangeProvider.notifier).state = range,
+            itemBuilder: (context) => StatsTimeRange.values
+                .map((range) => PopupMenuItem(
+                      value: range,
+                      child: Text(range.label),
+                    ))
+                .toList(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.date_range),
+                  const SizedBox(width: 8),
+                  Text(timeRange.label),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       body: ref.watch(databaseStatsProvider).when(
             loading: () => const Center(child: CircularProgressIndicator()),
