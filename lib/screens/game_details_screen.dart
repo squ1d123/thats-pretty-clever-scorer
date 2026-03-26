@@ -83,7 +83,16 @@ class GameDetailsScreen extends ConsumerWidget {
                       final player = game.players[index];
                       final isWinner = player.totalScore == maxScore;
                       return Card(
-                        color: isWinner ? Colors.amber[100] : null,
+                        color: isWinner ? Colors.amber[200] : null,
+                        shape: isWinner
+                            ? null
+                            : RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: Colors.grey.shade700,
+                                  width: 1,
+                                ),
+                              ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -95,13 +104,14 @@ class GameDetailsScreen extends ConsumerWidget {
                                     const Padding(
                                       padding: EdgeInsets.only(right: 8),
                                       child: Icon(Icons.emoji_events,
-                                          color: Colors.amber),
+                                          color: Colors.orange),
                                     ),
                                   Text(
                                     player.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
+                                      color: isWinner ? Colors.black87 : null,
                                     ),
                                   ),
                                 ],
@@ -110,47 +120,58 @@ class GameDetailsScreen extends ConsumerWidget {
                               _ScoreRow(
                                   label: 'Yellow',
                                   value: player.scoreSheet.yellow.total,
-                                  color: AppTheme.yellowColor),
+                                  color: AppTheme.yellowColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Green',
                                   value: player.scoreSheet.green.total,
-                                  color: AppTheme.greenColor),
+                                  color: AppTheme.greenColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Orange',
                                   value: player.scoreSheet.orange.total,
-                                  color: AppTheme.orangeColor),
+                                  color: AppTheme.orangeColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Purple',
                                   value: player.scoreSheet.purple.total,
-                                  color: AppTheme.purpleColor),
+                                  color: AppTheme.purpleColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Blue',
                                   value: player.scoreSheet.blue.total,
-                                  color: AppTheme.blueColor),
+                                  color: AppTheme.blueColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Foxes',
                                   value: player.scoreSheet.bonus.foxCount,
-                                  color: AppTheme.foxColor),
+                                  color: AppTheme.foxColor,
+                                  isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Bonus',
                                   value: player.scoreSheet.bonus.total,
-                                  color: AppTheme.bonusColor),
+                                  color: AppTheme.bonusColor,
+                                  isWinner: isWinner),
                               const Divider(),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Total',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16),
+                                        fontSize: 16,
+                                        color:
+                                            isWinner ? Colors.black87 : null),
                                   ),
                                   Text(
                                     '${player.totalScore}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16),
+                                        fontSize: 16,
+                                        color:
+                                            isWinner ? Colors.black87 : null),
                                   ),
                                 ],
                               ),
@@ -172,11 +193,13 @@ class _ScoreRow extends StatelessWidget {
   final String label;
   final int value;
   final Color color;
+  final bool isWinner;
 
   const _ScoreRow({
     required this.label,
     required this.value,
     required this.color,
+    this.isWinner = false,
   });
 
   @override
@@ -201,7 +224,12 @@ class _ScoreRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text('$value'),
+          Text(
+            '$value',
+            style: TextStyle(
+              color: isWinner ? Colors.black87 : null,
+            ),
+          ),
         ],
       ),
     );
