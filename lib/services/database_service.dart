@@ -1,10 +1,15 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import '../models/models.dart';
+import 'dart:io';
 
 class DatabaseService {
   static Database? _database;
   static const String _dbName = 'games.db';
+
+  static String? _dbPath;
+
+  static String get dbPath => _dbPath ?? '';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -15,6 +20,7 @@ class DatabaseService {
   Future<Database> _initDatabase() async {
     String dbPath = await getDatabasesPath();
     String path = p.join(dbPath, _dbName);
+    _dbPath = path;
     return await openDatabase(
       path,
       version: 1,
@@ -305,6 +311,137 @@ class DatabaseService {
     await db.delete('players');
     await db.delete('high_scores');
     await db.delete('games');
+  }
+
+  Future<String> exportToCsv() async {
+    final db = await database;
+    final games = await db.query('games');
+    final players = await db.query('players');
+
+    final buffer = StringBuffer();
+
+    buffer.writeln('Games:');
+    buffer.writeln(
+        'id,uuid,created_at,completed_at,player_count,winner_name,winner_score,notes');
+    for (var game in games) {
+      buffer.writeln(
+          '${game['id']},"${game['uuid']}","${game['created_at']}","${game['completed_at']}",${game['player_count']},"${game['winner_name']}",${game['winner_score']},"${game['notes']}"');
+    }
+
+    buffer.writeln('\nPlayers:');
+    buffer.writeln(
+        'id,game_id,name,final_score,yellow_total,green_total,orange_total,purple_total,blue_total,fox_count,bonus,winner');
+    for (var player in players) {
+      buffer.writeln(
+          '${player['id']},${player['game_id']},"${player['name']}",${player['final_score']},${player['yellow_total']},${player['green_total']},${player['orange_total']},${player['purple_total']},${player['blue_total']},${player['fox_count']},${player['bonus']},${player['winner']}');
+    }
+
+    return buffer.toString();
+  }
+
+  Future<String> exportToSqlite() async {
+    return dbPath;
+  }
+
+  Future<void> importFromCsv(String csvContent) async {
+    final db = await database;
+    final lines = csvContent.split('\n');
+
+    bool inGames = false;
+    bool inPlayers = false;
+
+    for (var line in lines) {
+      if (line.startsWith('Games:')) {
+        inGames = true;
+        inPlayers = false;
+        continue;
+      }
+      if (line.startsWith('Players:')) {
+        inPlayers = true;
+        continue;
+      }
+      if (line.trim().isEmpty) continue;
+
+      if (inGames && !line.contains('id,uuid')) {
+        final parts = _parseCsvLine(line);
+        if (parts.length >= 8) {
+          await db.insert('games', {
+            'uuid': parts[1],
+            'created_at': parts[2],
+            'completed_at': parts[3],
+            'player_count': int.tryParse(parts[4]) ?? 0,
+            'winner_name': parts[5],
+            'winner_score': int.tryParse(parts[6]) ?? 0,
+            'notes': parts[7],
+          });
+        }
+      }
+
+      if (inPlayers && !line.contains('id,game_id')) {
+        final parts = _parseCsvLine(line);
+        if (parts.length >= 12) {
+          await db.insert('players', {
+            'game_id': int.tryParse(parts[1]) ?? 0,
+            'name': parts[2],
+            'final_score': int.tryParse(parts[3]) ?? 0,
+            'yellow_total': int.tryParse(parts[4]) ?? 0,
+            'green_total': int.tryParse(parts[5]) ?? 0,
+            'orange_total': int.tryParse(parts[6]) ?? 0,
+            'purple_total': int.tryParse(parts[7]) ?? 0,
+            'blue_total': int.tryParse(parts[8]) ?? 0,
+            'fox_count': int.tryParse(parts[9]) ?? 0,
+            'bonus': int.tryParse(parts[10]) ?? 0,
+            'winner': int.tryParse(parts[11]) ?? 0,
+          });
+        }
+      }
+    }
+  }
+
+  List<String> _parseCsvLine(String line) {
+    final result = <String>[];
+    var current = StringBuffer();
+    var inQuotes = false;
+
+    for (var i = 0; i < line.length; i++) {
+      final c = line[i];
+      if (c == '"') {
+        inQuotes = !inQuotes;
+      } else if (c == ',' && !inQuotes) {
+        result.add(current.toString());
+        current = StringBuffer();
+      } else {
+        current.write(c);
+      }
+    }
+    result.add(current.toString());
+    return result;
+  }
+
+  Future<void> importFromSqlite(String importedDbPath) async {
+    final currentDb = await database;
+
+    await currentDb.close();
+
+    final backupPath = '$dbPath.bak';
+
+    final backupFile = File(backupPath);
+    if (await backupFile.exists()) {
+      await backupFile.delete();
+    }
+
+    final currentFile = File(dbPath);
+    if (await currentFile.exists()) {
+      await currentFile.rename(backupPath);
+    }
+
+    final importedFile = File(importedDbPath);
+    if (await importedFile.exists()) {
+      await importedFile.rename(dbPath);
+    }
+
+    DatabaseService._database = null;
+    await database;
   }
 
   Future<void> clearHighScores() async {

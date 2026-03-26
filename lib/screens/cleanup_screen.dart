@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import '../providers/game_providers.dart';
 
 class CleanupScreen extends ConsumerWidget {
@@ -77,6 +80,43 @@ class CleanupScreen extends ConsumerWidget {
             color: Colors.orange,
             onTap: () => _confirmClearHighScores(context, ref),
           ),
+          const SizedBox(height: 24),
+          const Text(
+            'Import / Export',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.file_download,
+            title: 'Export as CSV',
+            description: 'Export all data to a CSV file',
+            color: Colors.blue,
+            onTap: () => _exportCsv(context, ref),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.storage,
+            title: 'Export as SQLite',
+            description: 'Export database as SQLite file',
+            color: Colors.blue,
+            onTap: () => _exportSqlite(context, ref),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.file_upload,
+            title: 'Import from CSV',
+            description: 'Import data from a CSV file',
+            color: Colors.green,
+            onTap: () => _importCsv(context, ref),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.folder_open,
+            title: 'Import from SQLite',
+            description: 'Replace database with SQLite file',
+            color: Colors.green,
+            onTap: () => _importSqlite(context, ref),
+          ),
         ],
       ),
     );
@@ -146,6 +186,120 @@ class CleanupScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+void _showSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message)),
+  );
+}
+
+void _refreshProviders(WidgetRef ref) {
+  Future.microtask(() {
+    ref.invalidate(databaseStatsProvider);
+    ref.invalidate(gameHistoryProvider(GameHistoryFilter()));
+    ref.invalidate(highScoresProvider);
+  });
+}
+
+void _exportCsv(BuildContext context, WidgetRef ref) async {
+  try {
+    final db = ref.read(databaseServiceProvider);
+    final csvContent = await db.exportToCsv();
+
+    final tempDir = Directory.systemTemp;
+    final file = File('${tempDir.path}/ganz_clever_export.csv');
+    await file.writeAsString(csvContent);
+
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      subject: 'Ganz Schön Clever Data Export',
+    );
+
+    _showSnackBar(context, 'CSV exported successfully');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to export CSV: $e');
+  }
+}
+
+void _exportSqlite(BuildContext context, WidgetRef ref) async {
+  try {
+    final db = ref.read(databaseServiceProvider);
+    final dbPath = await db.exportToSqlite();
+
+    await Share.shareXFiles(
+      [XFile(dbPath)],
+      subject: 'Ganz Schön Clever Database Export',
+    );
+
+    _showSnackBar(context, 'SQLite exported successfully');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to export SQLite: $e');
+  }
+}
+
+void _importCsv(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final file = File(result.files.single.path!);
+    final csvContent = await file.readAsString();
+
+    final db = ref.read(databaseServiceProvider);
+    await db.importFromCsv(csvContent);
+
+    _refreshProviders(ref);
+    _showSnackBar(context, 'CSV imported successfully');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to import CSV: $e');
+  }
+}
+
+void _importSqlite(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Import SQLite Database?'),
+      content: const Text(
+        'This will replace your current database with the imported file. '
+        'Your current data will be backed up. This cannot be undone.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Import'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true) return;
+
+  try {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['db', 'sqlite', 'sqlite3'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final db = ref.read(databaseServiceProvider);
+    await db.importFromSqlite(result.files.single.path!);
+
+    _refreshProviders(ref);
+    _showSnackBar(context, 'SQLite imported successfully');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to import SQLite: $e');
   }
 }
 
