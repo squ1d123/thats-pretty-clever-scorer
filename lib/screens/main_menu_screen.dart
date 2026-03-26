@@ -17,6 +17,10 @@ class MainMenuScreen extends ConsumerWidget {
         title: const Text('Ganz Schön Clever Scorer'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () {},
+          ),
+          IconButton(
             icon: Icon(
               themeMode == ThemeMode.dark
                   ? Icons.light_mode

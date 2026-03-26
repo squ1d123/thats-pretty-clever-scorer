@@ -21,6 +21,12 @@ class FinalScoresScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Final Scores'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -141,7 +147,9 @@ class FinalScoresScreen extends ConsumerWidget {
             onPressed: () async {
               final gameSession = ref.read(gameSessionProvider);
               gameSession.notes = notesController.text;
-              await ref.read(gameSessionProvider.notifier).saveGame(notesController.text);
+              await ref
+                  .read(gameSessionProvider.notifier)
+                  .saveGame(notesController.text);
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

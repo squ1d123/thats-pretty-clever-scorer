@@ -34,6 +34,12 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game History'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: Column(
         children: [

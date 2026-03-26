@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
 
@@ -13,6 +14,12 @@ class HighScoresScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('High Scores'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: highScoresAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

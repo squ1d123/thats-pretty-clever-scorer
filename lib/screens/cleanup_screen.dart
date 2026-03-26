@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/game_providers.dart';
 
 class CleanupScreen extends ConsumerWidget {
@@ -12,6 +13,12 @@ class CleanupScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Data'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

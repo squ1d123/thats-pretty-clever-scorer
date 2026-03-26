@@ -67,6 +67,12 @@ class _ScoreCalculatorScreenState extends ConsumerState<ScoreCalculatorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Score Calculator'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
