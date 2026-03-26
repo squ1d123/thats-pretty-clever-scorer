@@ -4,11 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
 
-class HighScoresScreen extends ConsumerWidget {
+class HighScoresScreen extends ConsumerStatefulWidget {
   const HighScoresScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HighScoresScreen> createState() => _HighScoresScreenState();
+}
+
+class _HighScoresScreenState extends ConsumerState<HighScoresScreen> {
+  @override
+  Widget build(BuildContext context) {
     final highScoresAsync = ref.watch(highScoresProvider);
 
     return Scaffold(
@@ -37,9 +42,8 @@ class HighScoresScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final score = scores[index];
               final medal = _getMedal(index);
-
               return Card(
-                child: ListTile(
+                child: ExpansionTile(
                   leading: CircleAvatar(
                     backgroundColor: _getMedalColor(index),
                     child: Text(
@@ -61,6 +65,15 @@ class HighScoresScreen extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  children: [
+                    if (score.gameId != null)
+                      _ExpandedGameDetails(gameId: score.gameId!)
+                    else
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('Game details not available'),
+                      ),
+                  ],
                 ),
               );
             },
@@ -94,5 +107,66 @@ class HighScoresScreen extends ConsumerWidget {
       default:
         return Colors.blueGrey;
     }
+  }
+}
+
+class _ExpandedGameDetails extends ConsumerWidget {
+  final int gameId;
+
+  const _ExpandedGameDetails({required this.gameId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gameAsync = ref.watch(gameDetailsByIdProvider(gameId));
+
+    return gameAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: CircularProgressIndicator(),
+      ),
+      error: (err, stack) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('Error loading game: $err'),
+      ),
+      data: (game) {
+        if (game == null) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Game not found'),
+          );
+        }
+
+        final players = game.players.toList()
+          ..sort((a, b) => b.totalScore.compareTo(a.totalScore));
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Game on ${DateFormat.yMMMd().format(game.createdAt ?? DateTime.now())}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...players.map((p) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      '${p.name}: ${p.totalScore} pts',
+                      style: TextStyle(
+                        color: p == game.winner ? Colors.green : null,
+                      ),
+                    ),
+                  )),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.push('/game-details/${game.id}'),
+                child: const Text('View Full Game Details'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
