@@ -9,8 +9,19 @@ class DatabaseService {
   static const String _dbName = 'games.db';
 
   static String? _dbPath;
+  static String? _customDbPath;
 
   static String get dbPath => _dbPath ?? '';
+
+  static Future<void> setCustomDbPath(String path) async {
+    _customDbPath = path;
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+  }
+
+  static String? get customDbPath => _customDbPath;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -19,13 +30,18 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    final directory = await getApplicationDocumentsDirectory();
-    String dbPath = directory.path;
-    final dbDir = Directory(dbPath);
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+    String path;
+    if (_customDbPath != null && _customDbPath!.isNotEmpty) {
+      path = _customDbPath!;
+    } else {
+      final directory = await getApplicationDocumentsDirectory();
+      path = directory.path;
+      final dbDir = Directory(path);
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
+      path = p.join(path, _dbName);
     }
-    String path = p.join(dbPath, _dbName);
     _dbPath = path;
     return await openDatabase(
       path,
