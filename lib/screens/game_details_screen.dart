@@ -76,7 +76,7 @@ class GameDetailsScreen extends ConsumerWidget {
                       crossAxisCount: 2,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
-                      childAspectRatio: 0.85,
+                      childAspectRatio: 0.55,
                     ),
                     itemCount: game.players.length,
                     itemBuilder: (context, index) {
