@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
 import '../theme/app_theme.dart';
@@ -16,6 +17,12 @@ class GameDetailsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: gameAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

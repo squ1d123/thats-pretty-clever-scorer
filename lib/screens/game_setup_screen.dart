@@ -74,6 +74,12 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game Setup'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () => context.go('/'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -94,7 +100,8 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
               onChanged: _onSearchChanged,
             ),
             const SizedBox(height: 8),
-            const Text('Quick Add:', style: TextStyle(fontStyle: FontStyle.italic)),
+            const Text('Quick Add:',
+                style: TextStyle(fontStyle: FontStyle.italic)),
             const SizedBox(height: 8),
             if (_searchResults.isEmpty)
               const Text('No previous players found')
@@ -155,7 +162,9 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
-                        ref.read(gameSessionProvider.notifier).removePlayer(index);
+                        ref
+                            .read(gameSessionProvider.notifier)
+                            .removePlayer(index);
                       },
                     ),
                   ),
