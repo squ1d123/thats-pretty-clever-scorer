@@ -175,21 +175,26 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
       ),
       bottomNavigationBar: players.isEmpty
           ? null
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton.icon(
-                onPressed: () {
+          : NavigationBar(
+              selectedIndex: 0,
+              onDestinationSelected: (index) {
+                if (index == 1) {
                   ref.read(gameSessionProvider.notifier).calculateScores();
                   context.push('/calculator');
-                },
-                icon: const Icon(Icons.calculate),
-                label: const Text('Open Score Calculator'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                }
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Home',
                 ),
-              ),
+                NavigationDestination(
+                  icon: Icon(Icons.calculate_outlined),
+                  selectedIcon: Icon(Icons.calculate),
+                  label: 'Calculator',
+                ),
+              ],
             ),
     );
   }

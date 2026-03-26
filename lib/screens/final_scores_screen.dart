@@ -42,7 +42,7 @@ class FinalScoresScreen extends ConsumerWidget {
             ...players.map((player) {
               final isWinner = player.totalScore == maxScore;
               return Card(
-                color: isWinner ? Colors.amber[100] : null,
+                color: isWinner ? Colors.amber[200] : null,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -51,7 +51,7 @@ class FinalScoresScreen extends ConsumerWidget {
                         const Padding(
                           padding: EdgeInsets.only(right: 8),
                           child: Icon(Icons.emoji_events,
-                              color: Colors.amber, size: 32),
+                              color: Colors.black, size: 32),
                         ),
                       Expanded(
                         child: Column(
@@ -64,11 +64,15 @@ class FinalScoresScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: isWinner ? Colors.black87 : null,
                               ),
                             ),
                             Text(
                               '${player.totalScore} points',
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isWinner ? Colors.black54 : null,
+                              ),
                             ),
                           ],
                         ),
@@ -81,45 +85,35 @@ class FinalScoresScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => context.pop(),
-                child: const Text('Calculator'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => _showSaveDialog(context, ref),
-                icon: const Icon(Icons.save),
-                label: const Text('Save Game'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ref.read(gameSessionProvider.notifier).clearPlayers();
-                  context.go('/setup');
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('New Game'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          if (index == 0) {
+            context.pop();
+          } else if (index == 1) {
+            _showSaveDialog(context, ref);
+          } else if (index == 2) {
+            ref.read(gameSessionProvider.notifier).clearPlayers();
+            context.go('/setup');
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.arrow_back_outlined),
+            selectedIcon: Icon(Icons.arrow_back),
+            label: 'Calculator',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.save_outlined),
+            selectedIcon: Icon(Icons.save),
+            label: 'Save',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.refresh_outlined),
+            selectedIcon: Icon(Icons.refresh),
+            label: 'New Game',
+          ),
+        ],
       ),
     );
   }
@@ -150,6 +144,7 @@ class FinalScoresScreen extends ConsumerWidget {
               await ref
                   .read(gameSessionProvider.notifier)
                   .saveGame(notesController.text);
+              ref.invalidate(databaseStatsProvider);
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
