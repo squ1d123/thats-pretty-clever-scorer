@@ -122,7 +122,17 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                         subtitle: Text(
                           '${game.playerCount} players • ${game.createdAt != null ? DateFormat.yMMMd().format(game.createdAt!) : 'Unknown date'}',
                         ),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () =>
+                                  _confirmDeleteGame(context, game.dbId!),
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
                         onTap: () => context.push('/game-details/${game.id}'),
                       ),
                     );
@@ -130,6 +140,38 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteGame(BuildContext context, int gameId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Game?'),
+        content: const Text('This will permanently delete this game.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              final db = ref.read(databaseServiceProvider);
+              await db.deleteGame(gameId);
+              ref.invalidate(gameHistoryProvider(GameHistoryFilter()));
+              ref.invalidate(databaseStatsProvider);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Game deleted')),
+                );
+              }
+            },
+            child: const Text('Delete'),
           ),
         ],
       ),
