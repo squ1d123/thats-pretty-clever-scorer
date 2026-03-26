@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../providers/game_providers.dart';
+import '../services/database_service.dart';
 
 class CleanupScreen extends ConsumerWidget {
   const CleanupScreen({super.key});
@@ -33,6 +34,9 @@ class CleanupScreen extends ConsumerWidget {
 
   Widget _buildContent(
       BuildContext context, WidgetRef ref, Map<String, int> stats) {
+    final customPath = DatabaseService.customDbPath;
+    final isUsingCustom = customPath != null && customPath.isNotEmpty;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -55,6 +59,19 @@ class CleanupScreen extends ConsumerWidget {
                   _StatRow(
                       label: 'Highest Score Ever',
                       value: stats['highest_score'] ?? 0),
+                  const Divider(),
+                  Text(
+                    isUsingCustom ? 'Custom Path' : 'Default Path',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isUsingCustom ? customPath : 'Internal storage',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -116,6 +133,22 @@ class CleanupScreen extends ConsumerWidget {
             description: 'Replace database with SQLite file',
             color: Colors.green,
             onTap: () => _importSqlite(context, ref),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.link,
+            title: 'Load from Custom Path',
+            description: 'Load database from alternate location',
+            color: Colors.purple,
+            onTap: () => _loadFromCustomPath(context, ref),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.link_off,
+            title: 'Reset to Default Path',
+            description: 'Use internal app storage',
+            color: Colors.grey,
+            onTap: () => _resetToDefaultPath(context, ref),
           ),
         ],
       ),
@@ -299,6 +332,57 @@ void _importSqlite(BuildContext context, WidgetRef ref) async {
     _showSnackBar(context, 'SQLite imported successfully');
   } catch (e) {
     _showSnackBar(context, 'Failed to import SQLite: $e');
+  }
+}
+
+void _loadFromCustomPath(BuildContext context, WidgetRef ref) async {
+  try {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final customPath = result.files.single.path!;
+    await DatabaseService.setCustomDbPath(customPath);
+
+    _refreshProviders(ref);
+    _showSnackBar(context, 'Custom database path set');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to set custom path: $e');
+  }
+}
+
+void _resetToDefaultPath(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Reset to Default Path?'),
+      content: const Text(
+        'This will reset the database to use internal app storage. '
+        'Any data in a custom path will not be affected.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Reset'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true) return;
+
+  try {
+    await DatabaseService.setCustomDbPath('');
+    _refreshProviders(ref);
+    _showSnackBar(context, 'Database path reset to default');
+  } catch (e) {
+    _showSnackBar(context, 'Failed to reset path: $e');
   }
 }
 
