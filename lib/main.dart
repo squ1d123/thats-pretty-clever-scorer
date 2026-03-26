@@ -10,9 +10,11 @@ import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/game_providers.dart';
+import 'services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseService.initialize();
   if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
   } else if (Platform.isAndroid ||

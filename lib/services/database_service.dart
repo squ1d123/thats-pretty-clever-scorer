@@ -1,20 +1,33 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import 'dart:io';
 
 class DatabaseService {
   static Database? _database;
   static const String _dbName = 'games.db';
+  static const String _customDbPathKey = 'custom_database_path';
 
   static String? _dbPath;
   static String? _customDbPath;
 
   static String get dbPath => _dbPath ?? '';
 
+  static Future<void> initialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    _customDbPath = prefs.getString(_customDbPathKey);
+  }
+
   static Future<void> setCustomDbPath(String path) async {
-    _customDbPath = path;
+    _customDbPath = path.isEmpty ? null : path;
+    final prefs = await SharedPreferences.getInstance();
+    if (_customDbPath != null) {
+      await prefs.setString(_customDbPathKey, _customDbPath!);
+    } else {
+      await prefs.remove(_customDbPathKey);
+    }
     if (_database != null) {
       await _database!.close();
       _database = null;
@@ -33,6 +46,11 @@ class DatabaseService {
     String path;
     if (_customDbPath != null && _customDbPath!.isNotEmpty) {
       path = _customDbPath!;
+      final dbFile = File(path);
+      final dbDir = dbFile.parent;
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     } else {
       final directory = await getApplicationDocumentsDirectory();
       path = directory.path;
