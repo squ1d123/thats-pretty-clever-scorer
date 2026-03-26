@@ -488,21 +488,27 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> getGamesPerMonth({int? months}) async {
     final db = await database;
+
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
-      whereClause = "WHERE created_at >= date('now', '-$months months')";
+      whereClause = "AND created_at >= datetime('now', '-$months months')";
     }
-    final result = await db.rawQuery('''
+
+    // Extract date from the non-standard format (takes first 19 chars: "YYYY-MM-DD HH:MM:SS")
+    final query = '''
       SELECT 
-        strftime('%Y-%m', created_at) as month,
+        strftime('%Y-%m', substr(created_at, 1, 19)) as month,
         COUNT(*) as count
       FROM games
-      $whereClause
-      GROUP BY strftime('%Y-%m', created_at)
+      WHERE 1=1 $whereClause
+      GROUP BY strftime('%Y-%m', substr(created_at, 1, 19))
       ORDER BY month ASC
-    ''', args);
-    return result;
+    ''';
+    print('Query: $query');
+    final results = await db.rawQuery(query, args);
+    print('Results: $results');
+    return results;
   }
 
   Future<List<Map<String, dynamic>>> getAverageScoresByPlayerCount(
@@ -511,20 +517,20 @@ class DatabaseService {
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
-      whereClause = "WHERE created_at >= date('now', '-$months months')";
+      whereClause = "AND created_at >= datetime('now', '-$months months')";
     }
-    final result = await db.rawQuery('''
+    final query = '''
       SELECT 
         player_count,
         AVG(winner_score) as avg_score,
         MAX(winner_score) as max_score,
         COUNT(*) as games
       FROM games
-      $whereClause
+      WHERE 1=1 $whereClause
       GROUP BY player_count
       ORDER BY player_count ASC
-    ''', args);
-    return result;
+    ''';
+    return await db.rawQuery(query, args);
   }
 
   Future<List<Map<String, dynamic>>> getTopPlayers(

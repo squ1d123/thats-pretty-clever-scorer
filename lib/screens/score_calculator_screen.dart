@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
 import '../providers/game_providers.dart';
@@ -250,25 +251,29 @@ class _ScoreInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFox = label.toLowerCase() == 'foxes';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Container(
-            width: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: AppTheme.getScoreAreaTextColor(label.toLowerCase()),
-                fontWeight: FontWeight.w500,
+          if (isFox)
+            Padding(
+              padding: const EdgeInsets.all(4),
+              child: SvgPicture.asset(
+                'assets/fox.svg',
+                width: 24,
+                height: 24,
+              ),
+            )
+          else
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
               ),
             ),
-          ),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(

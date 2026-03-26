@@ -3,21 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/game_providers.dart';
 
-enum StatsTimeRange {
-  allTime('All Time', null),
-  lastMonth('Last Month', 1),
-  last3Months('Last 3 Months', 3),
-  last6Months('Last 6 Months', 6),
-  lastYear('Last Year', 12);
-
-  final String label;
-  final int? months;
-  const StatsTimeRange(this.label, this.months);
-}
-
-final statsTimeRangeProvider =
-    StateProvider<StatsTimeRange>((ref) => StatsTimeRange.allTime);
-
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
 
@@ -136,7 +121,10 @@ class StatsScreen extends ConsumerWidget {
                 height: 200,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (err, stack) => Text('Error: $err'),
+              error: (err, stack) => SizedBox(
+                height: 200,
+                child: Center(child: Text('Error: $err')),
+              ),
               data: (data) {
                 if (data.isEmpty) {
                   return const SizedBox(
@@ -145,7 +133,8 @@ class StatsScreen extends ConsumerWidget {
                   );
                 }
                 final maxCount = data
-                    .map((e) => e['count'] as int? ?? 0)
+                    .map(
+                        (e) => int.tryParse(e['count']?.toString() ?? '0') ?? 0)
                     .reduce((a, b) => a > b ? a : b);
                 return SizedBox(
                   height: 200,
@@ -193,12 +182,15 @@ class StatsScreen extends ConsumerWidget {
                       ),
                       borderData: FlBorderData(show: false),
                       barGroups: data.asMap().entries.map((entry) {
+                        final count = int.tryParse(
+                                entry.value['count']?.toString() ?? '0') ??
+                            0;
                         return BarChartGroupData(
                           x: entry.key,
                           barRods: [
                             BarChartRodData(
-                              toY: (entry.value['count'] as int).toDouble(),
-                              color: Theme.of(context).primaryColor,
+                              toY: count.toDouble(),
+                              color: Theme.of(context).colorScheme.primary,
                               width: 16,
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(4)),
