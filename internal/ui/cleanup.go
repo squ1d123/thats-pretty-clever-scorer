@@ -2,6 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strconv"
 	"time"
 
@@ -127,6 +129,11 @@ func CreateCleanupScreen(db *storage.Database, onBack func(), window fyne.Window
 		fyne.TextStyle{Bold: true, Italic: true},
 	)
 
+	// Export button
+	exportBtn := widget.NewButton("📤 Export Database", func() {
+		showExportDialog(db, window)
+	})
+
 	// Main layout (navigation bar will be handled by Navigation container)
 	content := container.NewVBox(
 		statsLabel,
@@ -135,6 +142,7 @@ func CreateCleanupScreen(db *storage.Database, onBack func(), window fyne.Window
 		optionsContainer,
 		widget.NewSeparator(),
 		warningLabel,
+		container.NewCenter(exportBtn),
 	)
 
 	return container.NewPadded(content)
@@ -207,4 +215,42 @@ func confirmDeleteDateRange(db *storage.Database, startDate, endDate time.Time, 
 		},
 		nil,
 	).Show()
+}
+
+func showExportDialog(db *storage.Database, window fyne.Window) {
+	dbPath, err := db.GetDatabasePath()
+	if err != nil {
+		dialog.ShowError(fmt.Errorf("Failed to get database path: %v", err), window)
+		return
+	}
+
+	saveDialog := dialog.NewFileSave(func(writer fyne.URIWriteCloser, err error) {
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("Failed to save file: %v", err), window)
+			return
+		}
+		if writer == nil {
+			return
+		}
+
+		sourceFile, err := os.Open(dbPath)
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("Failed to open database file: %v", err), window)
+			writer.Close()
+			return
+		}
+		defer sourceFile.Close()
+
+		_, err = io.Copy(writer, sourceFile)
+		writer.Close()
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("Failed to copy database: %v", err), window)
+			return
+		}
+
+		dialog.ShowInformation("Export Complete", "Database exported successfully!", window)
+	}, window)
+
+	saveDialog.SetFileName("games.db")
+	saveDialog.Show()
 }

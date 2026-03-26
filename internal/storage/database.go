@@ -144,3 +144,12 @@ func (d *Database) Close() error {
 	}
 	return nil
 }
+
+func (d *Database) GetDatabasePath() (string, error) {
+	prefs := fyne.CurrentApp().Preferences()
+	dbPath := prefs.StringWithFallback("database_path", "")
+	if dbPath != "" {
+		return dbPath, nil
+	}
+	return "", fmt.Errorf("database path not found")
+}
