@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/game_providers.dart';
-import '../theme/app_theme.dart';
 
 class MainMenuScreen extends ConsumerWidget {
   const MainMenuScreen({super.key});
@@ -108,6 +107,13 @@ class MainMenuScreen extends ConsumerWidget {
             label: 'Manage Data',
             color: Colors.orange,
             onTap: () => context.push('/cleanup'),
+          ),
+          const SizedBox(height: 12),
+          _MenuButton(
+            icon: Icons.bar_chart,
+            label: 'Statistics',
+            color: Colors.purple,
+            onTap: () => context.push('/stats'),
           ),
         ],
       ),

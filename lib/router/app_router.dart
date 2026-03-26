@@ -8,6 +8,7 @@ import '../screens/game_history_screen.dart';
 import '../screens/game_details_screen.dart';
 import '../screens/high_scores_screen.dart';
 import '../screens/cleanup_screen.dart';
+import '../screens/stats_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -57,6 +58,11 @@ final GoRouter appRouter = GoRouter(
       path: '/cleanup',
       name: 'cleanup',
       builder: (context, state) => const CleanupScreen(),
+    ),
+    GoRoute(
+      path: '/stats',
+      name: 'stats',
+      builder: (context, state) => const StatsScreen(),
     ),
   ],
 );

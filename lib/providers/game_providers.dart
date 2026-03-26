@@ -178,3 +178,39 @@ final gameDetailsByIdProvider =
   final db = ref.watch(databaseServiceProvider);
   return await db.getGameDetailsById(dbId);
 });
+
+final gamesPerMonthProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getGamesPerMonth();
+});
+
+final averageScoresProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getAverageScoresByPlayerCount();
+});
+
+final topPlayersProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getTopPlayers();
+});
+
+final scoreDistributionProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getScoreDistribution();
+});
+
+final averageScoreByPositionProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getAverageScoreByPlayerPosition();
+});
+
+final winPercentageByPlayerProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final db = ref.watch(databaseServiceProvider);
+  return await db.getWinPercentageByPlayer();
+});
