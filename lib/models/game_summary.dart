@@ -15,13 +15,26 @@ class GameSummary {
     required this.winnerScore,
   });
 
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString();
+    final cleaned = str.replaceAll(RegExp(r'\s+m=\+\d+\.\d+'), '');
+    try {
+      return DateTime.parse(cleaned);
+    } catch (_) {
+      try {
+        return DateTime.parse(str.split(' ').take(2).join(' '));
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
   factory GameSummary.fromMap(Map<String, dynamic> map) {
     return GameSummary(
       id: map['uuid'] as String?,
       dbId: map['id'] as int?,
-      createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
-          : null,
+      createdAt: _parseDateTime(map['created_at']),
       playerCount: map['player_count'] as int? ?? 0,
       winnerName: map['winner_name'] as String? ?? '',
       winnerScore: map['winner_score'] as int? ?? 0,

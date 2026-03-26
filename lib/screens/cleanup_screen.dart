@@ -287,8 +287,7 @@ void _importSqlite(BuildContext context, WidgetRef ref) async {
 
   try {
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['db', 'sqlite', 'sqlite3'],
+      type: FileType.any,
     );
 
     if (result == null || result.files.isEmpty) return;
