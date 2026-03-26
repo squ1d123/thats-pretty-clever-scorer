@@ -9,6 +9,7 @@ class MainMenuScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.invalidate(databaseStatsProvider);
     final statsAsync = ref.watch(databaseStatsProvider);
     final themeMode = ref.watch(themeModeProvider);
 
