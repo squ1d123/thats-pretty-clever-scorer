@@ -68,82 +68,97 @@ class GameDetailsScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                ...game.players.map((player) {
-                  final isWinner = player.totalScore == maxScore;
-                  return Card(
-                    color: isWinner ? Colors.amber[100] : null,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              if (isWinner)
-                                const Padding(
-                                  padding: EdgeInsets.only(right: 8),
-                                  child: Icon(Icons.emoji_events,
-                                      color: Colors.amber),
-                                ),
-                              Text(
-                                player.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          _ScoreRow(
-                              label: 'Yellow',
-                              value: player.scoreSheet.yellow.total,
-                              color: AppTheme.yellowColor),
-                          _ScoreRow(
-                              label: 'Green',
-                              value: player.scoreSheet.green.total,
-                              color: AppTheme.greenColor),
-                          _ScoreRow(
-                              label: 'Orange',
-                              value: player.scoreSheet.orange.total,
-                              color: AppTheme.orangeColor),
-                          _ScoreRow(
-                              label: 'Purple',
-                              value: player.scoreSheet.purple.total,
-                              color: AppTheme.purpleColor),
-                          _ScoreRow(
-                              label: 'Blue',
-                              value: player.scoreSheet.blue.total,
-                              color: AppTheme.blueColor),
-                          _ScoreRow(
-                              label: 'Foxes',
-                              value: player.scoreSheet.bonus.foxCount,
-                              color: AppTheme.foxColor),
-                          _ScoreRow(
-                              label: 'Bonus',
-                              value: player.scoreSheet.bonus.total,
-                              color: AppTheme.bonusColor),
-                          const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Total',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              Text(
-                                '${player.totalScore}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 0.85,
                     ),
-                  );
-                }),
+                    itemCount: game.players.length,
+                    itemBuilder: (context, index) {
+                      final player = game.players[index];
+                      final isWinner = player.totalScore == maxScore;
+                      return Card(
+                        color: isWinner ? Colors.amber[100] : null,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  if (isWinner)
+                                    const Padding(
+                                      padding: EdgeInsets.only(right: 8),
+                                      child: Icon(Icons.emoji_events,
+                                          color: Colors.amber),
+                                    ),
+                                  Text(
+                                    player.name,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _ScoreRow(
+                                  label: 'Yellow',
+                                  value: player.scoreSheet.yellow.total,
+                                  color: AppTheme.yellowColor),
+                              _ScoreRow(
+                                  label: 'Green',
+                                  value: player.scoreSheet.green.total,
+                                  color: AppTheme.greenColor),
+                              _ScoreRow(
+                                  label: 'Orange',
+                                  value: player.scoreSheet.orange.total,
+                                  color: AppTheme.orangeColor),
+                              _ScoreRow(
+                                  label: 'Purple',
+                                  value: player.scoreSheet.purple.total,
+                                  color: AppTheme.purpleColor),
+                              _ScoreRow(
+                                  label: 'Blue',
+                                  value: player.scoreSheet.blue.total,
+                                  color: AppTheme.blueColor),
+                              _ScoreRow(
+                                  label: 'Foxes',
+                                  value: player.scoreSheet.bonus.foxCount,
+                                  color: AppTheme.foxColor),
+                              _ScoreRow(
+                                  label: 'Bonus',
+                                  value: player.scoreSheet.bonus.total,
+                                  color: AppTheme.bonusColor),
+                              const Divider(),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Total',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                  Text(
+                                    '${player.totalScore}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
               ],
             ),
           );
