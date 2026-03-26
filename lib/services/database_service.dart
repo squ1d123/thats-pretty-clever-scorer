@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 import 'dart:io';
 
@@ -18,7 +19,12 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    String dbPath = await getDatabasesPath();
+    final directory = await getApplicationDocumentsDirectory();
+    String dbPath = directory.path;
+    final dbDir = Directory(dbPath);
+    if (!await dbDir.exists()) {
+      await dbDir.create(recursive: true);
+    }
     String path = p.join(dbPath, _dbName);
     _dbPath = path;
     return await openDatabase(
@@ -195,6 +201,21 @@ class DatabaseService {
     return _buildGameSession(db, gameId, gameMap);
   }
 
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString();
+    final cleaned = str.replaceAll(RegExp(r'\s+m=\+\d+\.\d+'), '');
+    try {
+      return DateTime.parse(cleaned);
+    } catch (_) {
+      try {
+        return DateTime.parse(str.split(' ').take(2).join(' '));
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
   Future<GameSession?> _buildGameSession(
       Database db, int gameId, Map<String, dynamic> gameMap) async {
     final players = await db.query(
@@ -205,8 +226,8 @@ class DatabaseService {
 
     final gameSession = GameSession(
       id: gameMap['uuid'] as String?,
-      createdAt: DateTime.parse(gameMap['created_at'] as String),
-      completedAt: DateTime.parse(gameMap['completed_at'] as String),
+      createdAt: _parseDateTime(gameMap['created_at']),
+      completedAt: _parseDateTime(gameMap['completed_at']),
       notes: gameMap['notes'] as String? ?? '',
     );
 
