@@ -94,32 +94,28 @@ class _ScoreCalculatorScreenState extends ConsumerState<ScoreCalculatorScreen> {
           }),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => context.pop(),
-                child: const Text('Back to Setup'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  _updateScores();
-                  context.push('/final-scores');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Show Final Scores'),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          if (index == 0) {
+            context.pop();
+          } else if (index == 1) {
+            _updateScores();
+            context.push('/final-scores');
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.arrow_back_outlined),
+            selectedIcon: Icon(Icons.arrow_back),
+            label: 'Setup',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emoji_events_outlined),
+            selectedIcon: Icon(Icons.emoji_events),
+            label: 'Final Scores',
+          ),
+        ],
       ),
     );
   }
@@ -166,6 +162,12 @@ class _PlayerScoreCard extends ConsumerWidget {
               onChanged: onChanged,
             ),
             _ScoreInput(
+              label: 'Blue',
+              color: AppTheme.blueColor,
+              controller: controllers[4],
+              onChanged: onChanged,
+            ),
+            _ScoreInput(
               label: 'Green',
               color: AppTheme.greenColor,
               controller: controllers[1],
@@ -181,12 +183,6 @@ class _PlayerScoreCard extends ConsumerWidget {
               label: 'Purple',
               color: AppTheme.purpleColor,
               controller: controllers[3],
-              onChanged: onChanged,
-            ),
-            _ScoreInput(
-              label: 'Blue',
-              color: AppTheme.blueColor,
-              controller: controllers[4],
               onChanged: onChanged,
             ),
             _ScoreInput(
