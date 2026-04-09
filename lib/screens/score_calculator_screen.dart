@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
+import '../models/game_version.dart';
 import '../providers/game_providers.dart';
 import '../theme/app_theme.dart';
 
@@ -139,6 +140,8 @@ class _PlayerScoreCard extends ConsumerWidget {
       (p) => p.name == player.name,
       orElse: () => player,
     );
+    final colors = gameSession.gameVersion.colors;
+    final colorNames = gameSession.gameVersion.colorNames;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -156,32 +159,32 @@ class _PlayerScoreCard extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _ScoreInput(
-              label: 'Yellow',
-              color: AppTheme.yellowColor,
+              label: colorNames[0],
+              color: colors[0],
               controller: controllers[0],
               onChanged: onChanged,
             ),
             _ScoreInput(
-              label: 'Blue',
-              color: AppTheme.blueColor,
+              label: colorNames[4],
+              color: colors[4],
               controller: controllers[4],
               onChanged: onChanged,
             ),
             _ScoreInput(
-              label: 'Green',
-              color: AppTheme.greenColor,
+              label: colorNames[1],
+              color: colors[1],
               controller: controllers[1],
               onChanged: onChanged,
             ),
             _ScoreInput(
-              label: 'Orange',
-              color: AppTheme.orangeColor,
+              label: colorNames[2],
+              color: colors[2],
               controller: controllers[2],
               onChanged: onChanged,
             ),
             _ScoreInput(
-              label: 'Purple',
-              color: AppTheme.purpleColor,
+              label: colorNames[3],
+              color: colors[3],
               controller: controllers[3],
               onChanged: onChanged,
             ),

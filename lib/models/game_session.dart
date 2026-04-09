@@ -1,4 +1,5 @@
 import 'player.dart';
+import 'game_version.dart';
 
 class GameSession {
   String? id;
@@ -7,6 +8,7 @@ class GameSession {
   List<Player> players;
   Player? winner;
   String notes;
+  GameVersion gameVersion;
 
   GameSession({
     this.id,
@@ -15,6 +17,7 @@ class GameSession {
     List<Player>? players,
     this.winner,
     this.notes = '',
+    this.gameVersion = GameVersion.v1,
   }) : players = players ?? [];
 
   String get winnerName => winner?.name ?? '';
@@ -56,6 +59,7 @@ class GameSession {
       'winner_name': winnerName,
       'winner_score': winnerScore,
       'notes': notes,
+      'game_version': gameVersion.id,
     };
   }
 }

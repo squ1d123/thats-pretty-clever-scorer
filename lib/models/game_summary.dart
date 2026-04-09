@@ -1,3 +1,5 @@
+import 'game_version.dart';
+
 class GameSummary {
   String? id;
   int? dbId;
@@ -5,6 +7,7 @@ class GameSummary {
   int playerCount;
   String winnerName;
   int winnerScore;
+  GameVersion gameVersion;
 
   GameSummary({
     this.id,
@@ -13,6 +16,7 @@ class GameSummary {
     required this.playerCount,
     required this.winnerName,
     required this.winnerScore,
+    this.gameVersion = GameVersion.v1,
   });
 
   static DateTime? _parseDateTime(dynamic value) {
@@ -38,6 +42,7 @@ class GameSummary {
       playerCount: map['player_count'] as int? ?? 0,
       winnerName: map['winner_name'] as String? ?? '',
       winnerScore: map['winner_score'] as int? ?? 0,
+      gameVersion: GameVersion.fromId(map['game_version'] as String?),
     );
   }
 }

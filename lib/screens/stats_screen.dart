@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/game_providers.dart';
+import '../models/game_version.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -9,6 +10,7 @@ class StatsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timeRange = ref.watch(statsTimeRangeProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,9 +38,35 @@ class StatsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          PopupMenuButton<GameVersion?>(
+            initialValue: selectedVersion,
+            onSelected: (version) =>
+                ref.read(gameVersionFilterProvider.notifier).state = version,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: null,
+                child: Text('All Versions'),
+              ),
+              ...GameVersion.values.map((v) => PopupMenuItem(
+                    value: v,
+                    child: Text(v.displayName),
+                  ))
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.videogame_asset),
+                  const SizedBox(width: 8),
+                  Text(selectedVersion?.displayName ?? 'All Versions'),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-      body: ref.watch(databaseStatsProvider).when(
+      body: ref.watch(databaseStatsProvider(selectedVersion)).when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, stack) => Center(child: Text('Error: $err')),
             data: (stats) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/database_service.dart';
 import '../models/models.dart';
+import '../models/game_version.dart';
 
 enum StatsTimeRange {
   allTime('All Time', null),
@@ -35,6 +36,18 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
 
   GameSessionNotifier(this._db) : super(GameSession());
 
+  void setGameVersion(GameVersion version) {
+    state = GameSession(
+      id: state.id,
+      createdAt: state.createdAt,
+      completedAt: state.completedAt,
+      players: List.from(state.players),
+      winner: state.winner,
+      notes: state.notes,
+      gameVersion: version,
+    );
+  }
+
   void addPlayer(String name) {
     if (state.players.length >= 4) return;
     if (state.players.any((p) => p.name.toLowerCase() == name.toLowerCase())) {
@@ -48,6 +61,7 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
       players: List.from(state.players),
       winner: state.winner,
       notes: state.notes,
+      gameVersion: state.gameVersion,
     );
   }
 
@@ -61,11 +75,12 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
       players: List.from(state.players),
       winner: state.winner,
       notes: state.notes,
+      gameVersion: state.gameVersion,
     );
   }
 
   void clearPlayers() {
-    state = GameSession();
+    state = GameSession(gameVersion: state.gameVersion);
   }
 
   void calculateScores() {
@@ -77,6 +92,7 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
       players: List.from(state.players),
       winner: state.winner,
       notes: state.notes,
+      gameVersion: state.gameVersion,
     );
   }
 
@@ -101,6 +117,7 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
       players: List.from(state.players),
       winner: state.winner,
       notes: state.notes,
+      gameVersion: state.gameVersion,
     );
   }
 
@@ -111,7 +128,7 @@ class GameSessionNotifier extends StateNotifier<GameSession> {
   }
 
   void reset() {
-    state = GameSession();
+    state = GameSession(gameVersion: state.gameVersion);
   }
 }
 
@@ -138,6 +155,7 @@ final gameHistoryProvider =
     playerName: filter.playerName,
     sortBy: filter.sortBy,
     sortOrder: filter.sortOrder,
+    gameVersion: filter.gameVersion,
   );
 });
 
@@ -146,12 +164,14 @@ class GameHistoryFilter {
   final String? playerName;
   final String sortBy;
   final String sortOrder;
+  final GameVersion? gameVersion;
 
   GameHistoryFilter({
     this.query,
     this.playerName,
     this.sortBy = 'date',
     this.sortOrder = 'desc',
+    this.gameVersion,
   });
 
   @override
@@ -162,25 +182,32 @@ class GameHistoryFilter {
           query == other.query &&
           playerName == other.playerName &&
           sortBy == other.sortBy &&
-          sortOrder == other.sortOrder;
+          sortOrder == other.sortOrder &&
+          gameVersion == other.gameVersion;
 
   @override
   int get hashCode =>
       query.hashCode ^
       playerName.hashCode ^
       sortBy.hashCode ^
-      sortOrder.hashCode;
+      sortOrder.hashCode ^
+      gameVersion.hashCode;
 }
 
-final highScoresProvider = FutureProvider<List<HighScore>>((ref) async {
+final highScoresProvider = FutureProvider.family<List<HighScore>, GameVersion?>(
+    (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getHighScores();
+  return await db.getHighScores(gameVersion: gameVersion);
 });
 
-final databaseStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+final databaseStatsProvider =
+    FutureProvider.family<Map<String, int>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getDatabaseStats();
+  return await db.getDatabaseStats(gameVersion: gameVersion);
 });
+
+final gameVersionFilterProvider = StateProvider<GameVersion?>((ref) => null);
 
 final gameDetailsProvider =
     FutureProvider.family<GameSession?, String>((ref, uuid) async {

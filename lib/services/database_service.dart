@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import '../models/game_version.dart';
 import 'dart:io';
 
 class DatabaseService {
@@ -69,9 +70,17 @@ class DatabaseService {
     _dbPath = path;
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE games ADD COLUMN game_version TEXT DEFAULT "v1"');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -165,6 +174,7 @@ class DatabaseService {
     String? playerName,
     String sortBy = 'date',
     String sortOrder = 'desc',
+    GameVersion? gameVersion,
   }) async {
     final db = await database;
 
@@ -182,6 +192,11 @@ class DatabaseService {
       conditions.add('(g.winner_name LIKE ? OR g.notes LIKE ?)');
       args.add('%$query%');
       args.add('%$query%');
+    }
+
+    if (gameVersion != null) {
+      conditions.add('g.game_version = ?');
+      args.add(gameVersion.id);
     }
 
     if (conditions.isNotEmpty) {
@@ -269,6 +284,7 @@ class DatabaseService {
       createdAt: _parseDateTime(gameMap['created_at']),
       completedAt: _parseDateTime(gameMap['completed_at']),
       notes: gameMap['notes'] as String? ?? '',
+      gameVersion: GameVersion.fromId(gameMap['game_version'] as String?),
     );
 
     for (var playerMap in players) {
@@ -286,14 +302,23 @@ class DatabaseService {
     return gameSession;
   }
 
-  Future<List<HighScore>> getHighScores({int limit = 10}) async {
+  Future<List<HighScore>> getHighScores(
+      {int limit = 10, GameVersion? gameVersion}) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(
-      'high_scores',
-      orderBy: 'score DESC',
-      limit: limit,
-    );
+    String sql =
+        'SELECT hs.* FROM high_scores hs JOIN games g ON hs.game_id = g.id';
+    List<dynamic> args = [];
+
+    if (gameVersion != null) {
+      sql += ' WHERE g.game_version = ?';
+      args.add(gameVersion.id);
+    }
+
+    sql += ' ORDER BY hs.score DESC LIMIT ?';
+    args.add(limit);
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery(sql, args);
 
     return maps.map((map) => HighScore.fromMap(map)).toList();
   }
@@ -331,26 +356,31 @@ class DatabaseService {
     return null;
   }
 
-  Future<int> getTotalGamesCount() async {
+  Future<int> getTotalGamesCount({GameVersion? gameVersion}) async {
     final db = await database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM games');
+    String sql = 'SELECT COUNT(*) as count FROM games';
+    List<dynamic> args = [];
+    if (gameVersion != null) {
+      sql += ' WHERE game_version = ?';
+      args.add(gameVersion.id);
+    }
+    final result = await db.rawQuery(sql, args);
     return _firstIntValue(result) ?? 0;
   }
 
-  Future<int> getTotalPlayersCount() async {
-    final db = await database;
-    final result =
-        await db.rawQuery('SELECT COUNT(DISTINCT name) as count FROM players');
-    return _firstIntValue(result) ?? 0;
-  }
-
-  Future<Map<String, int>> getDatabaseStats() async {
-    final gamesCount = await getTotalGamesCount();
-    final playersCount = await getTotalPlayersCount();
+  Future<Map<String, int>> getDatabaseStats({GameVersion? gameVersion}) async {
+    final gamesCount = await getTotalGamesCount(gameVersion: gameVersion);
+    final playersCount = await getTotalPlayersCount(gameVersion: gameVersion);
 
     final db = await database;
-    final highScoreResult =
-        await db.rawQuery('SELECT MAX(score) as max FROM high_scores');
+    String hsSql = 'SELECT MAX(score) as max FROM high_scores';
+    List<dynamic> hsArgs = [];
+    if (gameVersion != null) {
+      hsSql =
+          'SELECT MAX(hs.score) as max FROM high_scores hs JOIN games g ON hs.game_id = g.id WHERE g.game_version = ?';
+      hsArgs.add(gameVersion.id);
+    }
+    final highScoreResult = await db.rawQuery(hsSql, hsArgs);
     final highestScore = _firstIntValue(highScoreResult) ?? 0;
 
     return {
@@ -358,6 +388,19 @@ class DatabaseService {
       'players': playersCount,
       'highest_score': highestScore,
     };
+  }
+
+  Future<int> getTotalPlayersCount({GameVersion? gameVersion}) async {
+    final db = await database;
+    String sql = 'SELECT COUNT(DISTINCT name) as count FROM players';
+    List<dynamic> args = [];
+    if (gameVersion != null) {
+      sql =
+          'SELECT COUNT(DISTINCT p.name) as count FROM players p JOIN games g ON p.game_id = g.id WHERE g.game_version = ?';
+      args.add(gameVersion.id);
+    }
+    final result = await db.rawQuery(sql, args);
+    return _firstIntValue(result) ?? 0;
   }
 
   Future<void> deleteGame(int gameId) async {

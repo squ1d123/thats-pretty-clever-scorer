@@ -144,7 +144,7 @@ class FinalScoresScreen extends ConsumerWidget {
               await ref
                   .read(gameSessionProvider.notifier)
                   .saveGame(notesController.text);
-              ref.invalidate(databaseStatsProvider);
+              ref.invalidate(databaseStatsProvider(null));
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

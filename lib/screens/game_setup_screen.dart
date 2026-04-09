@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/game_providers.dart';
+import '../models/game_version.dart';
 
 class GameSetupScreen extends ConsumerStatefulWidget {
   const GameSetupScreen({super.key});
@@ -59,6 +60,38 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
     });
   }
 
+  Widget _buildColorPreview(GameVersion version) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Colors: ${version.colorNames.join(", ")}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: version.colors.map((color) {
+                return Expanded(
+                  child: Container(
+                    height: 24,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _addPlayer(String name) {
     if (name.trim().isEmpty) return;
     ref.read(gameSessionProvider.notifier).addPlayer(name.trim());
@@ -86,6 +119,29 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Text(
+              'Select Game Version:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<GameVersion>(
+              segments: GameVersion.values
+                  .map((v) => ButtonSegment(
+                        value: v,
+                        label: Text(v.displayName),
+                      ))
+                  .toList(),
+              selected: {gameSession.gameVersion},
+              onSelectionChanged: (selected) {
+                ref
+                    .read(gameSessionProvider.notifier)
+                    .setGameVersion(selected.first);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildColorPreview(gameSession.gameVersion),
+            const SizedBox(height: 16),
+            const Divider(),
             const Text(
               'Add Players (1-4 players):',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

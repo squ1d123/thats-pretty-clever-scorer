@@ -50,6 +50,26 @@ class GameDetailsScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: game.gameVersion.colors[0],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                game.gameVersion.displayName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
                         Text(
                           'Played on ${game.createdAt != null ? DateFormat.yMMMd().add_jm().format(game.createdAt!) : 'Unknown'}',
                           style: const TextStyle(fontSize: 14),
@@ -82,6 +102,8 @@ class GameDetailsScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final player = game.players[index];
                       final isWinner = player.totalScore == maxScore;
+                      final colors = game.gameVersion.colors;
+                      final colorNames = game.gameVersion.colorNames;
                       return Card(
                         color: isWinner ? Colors.amber[200] : null,
                         shape: isWinner
@@ -118,29 +140,29 @@ class GameDetailsScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 8),
                               _ScoreRow(
-                                  label: 'Yellow',
+                                  label: colorNames[0],
                                   value: player.scoreSheet.yellow.total,
-                                  color: AppTheme.yellowColor,
+                                  color: colors[0],
                                   isWinner: isWinner),
                               _ScoreRow(
-                                  label: 'Green',
+                                  label: colorNames[1],
                                   value: player.scoreSheet.green.total,
-                                  color: AppTheme.greenColor,
+                                  color: colors[1],
                                   isWinner: isWinner),
                               _ScoreRow(
-                                  label: 'Orange',
+                                  label: colorNames[2],
                                   value: player.scoreSheet.orange.total,
-                                  color: AppTheme.orangeColor,
+                                  color: colors[2],
                                   isWinner: isWinner),
                               _ScoreRow(
-                                  label: 'Purple',
+                                  label: colorNames[3],
                                   value: player.scoreSheet.purple.total,
-                                  color: AppTheme.purpleColor,
+                                  color: colors[3],
                                   isWinner: isWinner),
                               _ScoreRow(
-                                  label: 'Blue',
+                                  label: colorNames[4],
                                   value: player.scoreSheet.blue.total,
-                                  color: AppTheme.blueColor,
+                                  color: colors[4],
                                   isWinner: isWinner),
                               _ScoreRow(
                                   label: 'Foxes',

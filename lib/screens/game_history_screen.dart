@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
+import '../models/game_version.dart';
 
 class GameHistoryScreen extends ConsumerStatefulWidget {
   const GameHistoryScreen({super.key});
@@ -15,6 +16,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _sortBy = 'date';
   String _sortOrder = 'desc';
+  GameVersion? _selectedVersion;
 
   @override
   void dispose() {
@@ -28,6 +30,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
       query: _searchController.text.isEmpty ? null : _searchController.text,
       sortBy: _sortBy,
       sortOrder: _sortOrder,
+      gameVersion: _selectedVersion,
     );
     final gamesAsync = ref.watch(gameHistoryProvider(filter));
 
@@ -94,6 +97,26 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                         });
                       },
                     ),
+                    const Spacer(),
+                    DropdownButton<GameVersion?>(
+                      value: _selectedVersion,
+                      hint: const Text('Version'),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('All'),
+                        ),
+                        ...GameVersion.values.map((v) => DropdownMenuItem(
+                              value: v,
+                              child: Text(v.id.toUpperCase()),
+                            )),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVersion = value;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -120,7 +143,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
-                          '${game.playerCount} players • ${game.createdAt != null ? DateFormat.yMMMd().format(game.createdAt!) : 'Unknown date'}',
+                          '${game.playerCount} players • ${game.createdAt != null ? DateFormat.yMMMd().format(game.createdAt!) : 'Unknown date'} • ${game.gameVersion.id.toUpperCase()}',
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -163,7 +186,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               final db = ref.read(databaseServiceProvider);
               await db.deleteGame(gameId);
               ref.invalidate(gameHistoryProvider(GameHistoryFilter()));
-              ref.invalidate(databaseStatsProvider);
+              ref.invalidate(databaseStatsProvider(null));
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

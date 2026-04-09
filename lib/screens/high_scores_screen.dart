@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
+import '../models/game_version.dart';
 
 class HighScoresScreen extends ConsumerStatefulWidget {
   const HighScoresScreen({super.key});
@@ -14,7 +15,8 @@ class HighScoresScreen extends ConsumerStatefulWidget {
 class _HighScoresScreenState extends ConsumerState<HighScoresScreen> {
   @override
   Widget build(BuildContext context) {
-    final highScoresAsync = ref.watch(highScoresProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
+    final highScoresAsync = ref.watch(highScoresProvider(selectedVersion));
 
     return Scaffold(
       appBar: AppBar(
@@ -26,59 +28,88 @@ class _HighScoresScreenState extends ConsumerState<HighScoresScreen> {
           ),
         ],
       ),
-      body: highScoresAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (scores) {
-          if (scores.isEmpty) {
-            return const Center(
-              child: Text('No high scores yet. Play some games!'),
-            );
-          }
-
-          return ListView.builder(
+      body: Column(
+        children: [
+          Padding(
             padding: const EdgeInsets.all(16),
-            itemCount: scores.length,
-            itemBuilder: (context, index) {
-              final score = scores[index];
-              final medal = _getMedal(index);
-              return Card(
-                child: ExpansionTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _getMedalColor(index),
-                    child: Text(
-                      medal,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  title: Text(
-                    score.playerName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    'Achieved ${DateFormat.yMMMd().format(score.achievedAt)}',
-                  ),
-                  trailing: Text(
-                    '${score.score}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  children: [
-                    if (score.gameId != null)
-                      _ExpandedGameDetails(gameId: score.gameId!)
-                    else
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('Game details not available'),
-                      ),
-                  ],
+            child: DropdownButtonFormField<GameVersion?>(
+              value: selectedVersion,
+              decoration: const InputDecoration(
+                labelText: 'Filter by version',
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('All Versions'),
                 ),
-              );
-            },
-          );
-        },
+                ...GameVersion.values.map((v) => DropdownMenuItem(
+                      value: v,
+                      child: Text(v.displayName),
+                    )),
+              ],
+              onChanged: (value) {
+                ref.read(gameVersionFilterProvider.notifier).state = value;
+              },
+            ),
+          ),
+          Expanded(
+            child: highScoresAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (scores) {
+                if (scores.isEmpty) {
+                  return const Center(
+                    child: Text('No high scores yet. Play some games!'),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: scores.length,
+                  itemBuilder: (context, index) {
+                    final score = scores[index];
+                    final medal = _getMedal(index);
+                    return Card(
+                      child: ExpansionTile(
+                        leading: CircleAvatar(
+                          backgroundColor: _getMedalColor(index),
+                          child: Text(
+                            medal,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        title: Text(
+                          score.playerName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          'Achieved ${DateFormat.yMMMd().format(score.achievedAt)}',
+                        ),
+                        trailing: Text(
+                          '${score.score}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        children: [
+                          if (score.gameId != null)
+                            _ExpandedGameDetails(gameId: score.gameId!)
+                          else
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('Game details not available'),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
