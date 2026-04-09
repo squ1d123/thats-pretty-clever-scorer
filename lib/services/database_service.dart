@@ -42,6 +42,7 @@ class DatabaseService {
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
+    await _ensureGameVersionColumn(_database!);
     return _database!;
   }
 
@@ -78,6 +79,15 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE games ADD COLUMN game_version TEXT DEFAULT "v1"');
+    }
+  }
+
+  Future<void> _ensureGameVersionColumn(Database db) async {
+    try {
+      await db.execute('SELECT game_version FROM games LIMIT 1');
+    } catch (e) {
       await db.execute(
           'ALTER TABLE games ADD COLUMN game_version TEXT DEFAULT "v1"');
     }
