@@ -21,6 +21,7 @@ class DatabaseService {
   }
 
   static Future<void> setCustomDbPath(String path) async {
+    final oldPath = _customDbPath;
     _customDbPath = path.isEmpty ? null : path;
     final prefs = await SharedPreferences.getInstance();
     if (_customDbPath != null) {
@@ -28,9 +29,10 @@ class DatabaseService {
     } else {
       await prefs.remove(_customDbPathKey);
     }
-    if (_database != null) {
+    if (_database != null && oldPath != _customDbPath) {
       await _database!.close();
       _database = null;
+      _dbPath = null;
     }
   }
 
@@ -45,9 +47,13 @@ class DatabaseService {
   Future<Database> _initDatabase() async {
     String path;
     if (_customDbPath != null && _customDbPath!.isNotEmpty) {
-      path = _customDbPath!;
-      final dbFile = File(path);
-      final dbDir = dbFile.parent;
+      final isDirectory = await FileSystemEntity.isDirectory(_customDbPath!);
+      if (isDirectory) {
+        path = p.join(_customDbPath!, _dbName);
+      } else {
+        path = _customDbPath!;
+      }
+      final dbDir = Directory(p.dirname(path));
       if (!await dbDir.exists()) {
         await dbDir.create(recursive: true);
       }

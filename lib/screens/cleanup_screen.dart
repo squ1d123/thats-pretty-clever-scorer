@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/game_providers.dart';
 import '../services/database_service.dart';
 
@@ -337,17 +341,26 @@ void _importSqlite(BuildContext context, WidgetRef ref) async {
 
 void _loadFromCustomPath(BuildContext context, WidgetRef ref) async {
   try {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
+    final storagePermission = await Permission.storage.request();
+    if (!storagePermission.isGranted) {
+      final managePermission = await Permission.manageExternalStorage.request();
+      if (!managePermission.isGranted && managePermission.isPermanentlyDenied) {
+        _showSnackBar(context, 'Storage permission required');
+        await openAppSettings();
+        return;
+      }
+    }
 
-    if (result == null || result.files.isEmpty) return;
+    final result = await FilePicker.platform.getDirectoryPath();
 
-    final customPath = result.files.single.path!;
-    await DatabaseService.setCustomDbPath(customPath);
+    if (result == null) return;
+
+    final customPath = result;
+    final dbPath = p.join(customPath, 'ganz-schon-clever-games.db');
+    await DatabaseService.setCustomDbPath(dbPath);
 
     _refreshProviders(ref);
-    _showSnackBar(context, 'Custom database path set');
+    _showSnackBar(context, 'Custom database path set to: $customPath');
   } catch (e) {
     _showSnackBar(context, 'Failed to set custom path: $e');
   }
