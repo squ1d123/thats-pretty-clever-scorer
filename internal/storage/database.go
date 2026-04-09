@@ -42,7 +42,6 @@ func InitializeDatabase(app fyne.App) (*Database, error) {
 }
 
 func getDatabasePath(app fyne.App) (string, error) {
-	// Get stored database path from preferences
 	prefs := app.Preferences()
 	dbPath := prefs.StringWithFallback("database_path", "")
 
@@ -50,16 +49,21 @@ func getDatabasePath(app fyne.App) (string, error) {
 		return dbPath, nil
 	}
 
-	// Create default database path using Fyne's storage API
-	// This works correctly on both mobile and desktop
 	repo := app.Storage()
-	dbURI, err := repo.Create("games.db")
-	if err != nil {
-		return "", fmt.Errorf("failed to create database URI: %w", err)
+
+	_, err := repo.Open("games.db")
+	if err == nil {
+		dbPath = "games.db"
+		prefs.SetString("database_path", dbPath)
+		return dbPath, nil
 	}
 
-	// Store the URI path in preferences for future use
-	dbPath = dbURI.URI().String()
+	_, err = repo.Create("games.db")
+	if err != nil {
+		return "", fmt.Errorf("failed to create database: %w", err)
+	}
+
+	dbPath = "games.db"
 	prefs.SetString("database_path", dbPath)
 
 	return dbPath, nil

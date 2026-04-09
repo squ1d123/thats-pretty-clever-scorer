@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"time"
 
@@ -218,9 +217,12 @@ func confirmDeleteDateRange(db *storage.Database, startDate, endDate time.Time, 
 }
 
 func showExportDialog(db *storage.Database, window fyne.Window) {
-	dbPath, err := db.GetDatabasePath()
+	app := fyne.CurrentApp()
+	storage := app.Storage()
+
+	dbURI, err := storage.Open("games.db")
 	if err != nil {
-		dialog.ShowError(fmt.Errorf("Failed to get database path: %v", err), window)
+		dialog.ShowError(fmt.Errorf("Failed to open database: %v", err), window)
 		return
 	}
 
@@ -230,25 +232,38 @@ func showExportDialog(db *storage.Database, window fyne.Window) {
 			return
 		}
 		if writer == nil {
+			dbURI.Close()
 			return
 		}
 
-		sourceFile, err := os.Open(dbPath)
-		if err != nil {
-			dialog.ShowError(fmt.Errorf("Failed to open database file: %v", err), window)
-			writer.Close()
-			return
+		buf := make([]byte, 32*1024)
+		total := int64(0)
+		for {
+			n, rErr := dbURI.Read(buf)
+			if n > 0 {
+				written, wErr := writer.Write(buf[:n])
+				total += int64(written)
+				if wErr != nil {
+					writer.Close()
+					dbURI.Close()
+					dialog.ShowError(fmt.Errorf("Failed to write database: %v", wErr), window)
+					return
+				}
+			}
+			if rErr != nil {
+				if rErr == io.EOF {
+					break
+				}
+				writer.Close()
+				dbURI.Close()
+				dialog.ShowError(fmt.Errorf("Failed to read database: %v", rErr), window)
+				return
+			}
 		}
-		defer sourceFile.Close()
-
-		_, err = io.Copy(writer, sourceFile)
 		writer.Close()
-		if err != nil {
-			dialog.ShowError(fmt.Errorf("Failed to copy database: %v", err), window)
-			return
-		}
+		dbURI.Close()
 
-		dialog.ShowInformation("Export Complete", "Database exported successfully!", window)
+		dialog.ShowInformation("Export Complete", fmt.Sprintf("Database exported (%d bytes)!", total), window)
 	}, window)
 
 	saveDialog.SetFileName("games.db")
