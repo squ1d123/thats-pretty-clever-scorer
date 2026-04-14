@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../models/game_version.dart';
 import '../providers/game_providers.dart';
 
 class FinalScoresScreen extends ConsumerWidget {
@@ -144,7 +145,7 @@ class FinalScoresScreen extends ConsumerWidget {
               await ref
                   .read(gameSessionProvider.notifier)
                   .saveGame(notesController.text);
-              ref.invalidate(databaseStatsProvider(null));
+              ref.invalidate(databaseStatsProvider(GameVersion.all));
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

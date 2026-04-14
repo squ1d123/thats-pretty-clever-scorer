@@ -9,7 +9,7 @@ class MainMenuScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(databaseStatsProvider(null));
+    final statsAsync = ref.watch(databaseStatsProvider(GameVersion.all));
     final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(

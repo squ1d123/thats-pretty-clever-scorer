@@ -22,18 +22,18 @@ enum GameVersion {
       case GameVersion.v1:
         return const [
           Color(0xFFFFD700),
+          Color(0xFF2196F3),
           Color(0xFF4CAF50),
           Color(0xFFFF9800),
           Color(0xFF9C27B0),
-          Color(0xFF2196F3),
         ];
       case GameVersion.v2:
         return const [
-          Color(0xFFE91E63),
-          Color(0xFF4CAF50),
-          Color(0xFF2196F3),
-          Color(0xFFFFEB3B),
           Color(0xFF9E9E9E),
+          Color(0xFFFFEB3B),
+          Color(0xFF2196F3),
+          Color(0xFF4CAF50),
+          Color(0xFFE91E63),
         ];
     }
   }
@@ -42,9 +42,9 @@ enum GameVersion {
     switch (this) {
       case GameVersion.all:
       case GameVersion.v1:
-        return ['Yellow', 'Green', 'Orange', 'Purple', 'Blue'];
+        return ['Yellow', 'Blue', 'Green', 'Orange', 'Purple'];
       case GameVersion.v2:
-        return ['Pink', 'Green', 'Blue', 'Yellow', 'Silver'];
+        return ['Silver', 'Yellow', 'Blue', 'Green', 'Pink'];
     }
   }
 }

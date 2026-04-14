@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import '../models/game_version.dart';
 import '../providers/game_providers.dart';
 import '../services/database_service.dart';
 
@@ -14,7 +15,7 @@ class CleanupScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(databaseStatsProvider(null));
+    final statsAsync = ref.watch(databaseStatsProvider(GameVersion.all));
 
     return Scaffold(
       appBar: AppBar(

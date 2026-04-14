@@ -186,7 +186,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               final db = ref.read(databaseServiceProvider);
               await db.deleteGame(gameId);
               ref.invalidate(gameHistoryProvider(GameHistoryFilter()));
-              ref.invalidate(databaseStatsProvider(null));
+              ref.invalidate(databaseStatsProvider(GameVersion.all));
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

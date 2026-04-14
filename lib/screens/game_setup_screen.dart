@@ -126,6 +126,7 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
             const SizedBox(height: 12),
             SegmentedButton<GameVersion>(
               segments: GameVersion.values
+                  .where((v) => v != GameVersion.all)
                   .map((v) => ButtonSegment(
                         value: v,
                         label: Text(v.displayName),

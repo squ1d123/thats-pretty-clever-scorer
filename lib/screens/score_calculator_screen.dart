@@ -165,12 +165,6 @@ class _PlayerScoreCard extends ConsumerWidget {
               onChanged: onChanged,
             ),
             _ScoreInput(
-              label: colorNames[4],
-              color: colors[4],
-              controller: controllers[4],
-              onChanged: onChanged,
-            ),
-            _ScoreInput(
               label: colorNames[1],
               color: colors[1],
               controller: controllers[1],
@@ -186,6 +180,12 @@ class _PlayerScoreCard extends ConsumerWidget {
               label: colorNames[3],
               color: colors[3],
               controller: controllers[3],
+              onChanged: onChanged,
+            ),
+            _ScoreInput(
+              label: colorNames[4],
+              color: colors[4],
+              controller: controllers[4],
               onChanged: onChanged,
             ),
             _ScoreInput(

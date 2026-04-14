@@ -41,7 +41,6 @@ class StatsScreen extends ConsumerWidget {
           _VersionFilterButton(
             selectedVersion: selectedVersion,
             onVersionChanged: (version) {
-              debugPrint('version changed to $version');
               ref.read(gameVersionFilterProvider.notifier).state = version;
             },
           ),
