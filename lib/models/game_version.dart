@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum GameVersion {
+  all('all', 'All Versions'),
   v1('v1', 'Ganz Schön Clever'),
   v2('v2', 'Twice as Clever');
 
@@ -11,11 +12,13 @@ enum GameVersion {
 
   static GameVersion fromId(String? id) {
     if (id == 'v2') return GameVersion.v2;
-    return GameVersion.v1;
+    if (id == 'v1') return GameVersion.v1;
+    return GameVersion.all;
   }
 
   List<Color> get colors {
     switch (this) {
+      case GameVersion.all:
       case GameVersion.v1:
         return const [
           Color(0xFFFFD700),
@@ -37,6 +40,7 @@ enum GameVersion {
 
   List<String> get colorNames {
     switch (this) {
+      case GameVersion.all:
       case GameVersion.v1:
         return ['Yellow', 'Green', 'Orange', 'Purple', 'Blue'];
       case GameVersion.v2:

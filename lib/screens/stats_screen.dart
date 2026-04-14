@@ -38,31 +38,12 @@ class StatsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          PopupMenuButton<GameVersion?>(
-            initialValue: selectedVersion,
-            onSelected: (version) =>
-                ref.read(gameVersionFilterProvider.notifier).state = version,
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: null,
-                child: Text('All Versions'),
-              ),
-              ...GameVersion.values.map((v) => PopupMenuItem(
-                    value: v,
-                    child: Text(v.displayName),
-                  ))
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  const Icon(Icons.videogame_asset),
-                  const SizedBox(width: 8),
-                  Text(selectedVersion?.displayName ?? 'All Versions'),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            ),
+          _VersionFilterButton(
+            selectedVersion: selectedVersion,
+            onVersionChanged: (version) {
+              debugPrint('version changed to $version');
+              ref.read(gameVersionFilterProvider.notifier).state = version;
+            },
           ),
         ],
       ),
@@ -131,7 +112,8 @@ class StatsScreen extends ConsumerWidget {
   }
 
   Widget _buildGamesPerMonthChart(BuildContext context, WidgetRef ref) {
-    final dataAsync = ref.watch(gamesPerMonthProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
+    final dataAsync = ref.watch(gamesPerMonthProvider(selectedVersion));
 
     return Card(
       child: Padding(
@@ -238,7 +220,9 @@ class StatsScreen extends ConsumerWidget {
   }
 
   Widget _buildAverageScoresChart(BuildContext context, WidgetRef ref) {
-    final dataAsync = ref.watch(averageScoreByPositionProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
+    final dataAsync =
+        ref.watch(averageScoreByPositionProvider(selectedVersion));
 
     return Card(
       child: Padding(
@@ -344,7 +328,8 @@ class StatsScreen extends ConsumerWidget {
   }
 
   Widget _buildWinDistributionChart(BuildContext context, WidgetRef ref) {
-    final dataAsync = ref.watch(winPercentageByPlayerProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
+    final dataAsync = ref.watch(winPercentageByPlayerProvider(selectedVersion));
 
     return Card(
       child: Padding(
@@ -452,7 +437,8 @@ class StatsScreen extends ConsumerWidget {
   }
 
   Widget _buildTopPlayersList(BuildContext context, WidgetRef ref) {
-    final dataAsync = ref.watch(topPlayersProvider);
+    final selectedVersion = ref.watch(gameVersionFilterProvider);
+    final dataAsync = ref.watch(topPlayersProvider(selectedVersion));
 
     return Card(
       child: Padding(
@@ -565,6 +551,53 @@ class _StatCard extends StatelessWidget {
               style: const TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VersionFilterButton extends StatelessWidget {
+  final GameVersion? selectedVersion;
+  final ValueChanged<GameVersion?> onVersionChanged;
+
+  const _VersionFilterButton({
+    required this.selectedVersion,
+    required this.onVersionChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<GameVersion?>(
+      initialValue: selectedVersion,
+      onSelected: onVersionChanged,
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: GameVersion.all,
+          child: Text(selectedVersion == GameVersion.all
+              ? '✓ All Versions'
+              : 'All Versions'),
+        ),
+        ...GameVersion.values
+            .where((v) => v != GameVersion.all)
+            .map((v) => PopupMenuItem(
+                  value: v,
+                  child: Text(selectedVersion == v
+                      ? '✓ ${v.displayName}'
+                      : v.displayName),
+                ))
+      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            const Icon(Icons.videogame_asset),
+            const SizedBox(width: 8),
+            Text(selectedVersion == GameVersion.all
+                ? 'All Versions'
+                : selectedVersion!.displayName),
+            const Icon(Icons.arrow_drop_down),
           ],
         ),
       ),

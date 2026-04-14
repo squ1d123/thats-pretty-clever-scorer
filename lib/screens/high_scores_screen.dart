@@ -39,14 +39,20 @@ class _HighScoresScreenState extends ConsumerState<HighScoresScreen> {
                 border: OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text('All Versions'),
+                DropdownMenuItem(
+                  value: GameVersion.all,
+                  child: Text(selectedVersion == GameVersion.all
+                      ? '✓ All Versions'
+                      : 'All Versions'),
                 ),
-                ...GameVersion.values.map((v) => DropdownMenuItem(
-                      value: v,
-                      child: Text(v.displayName),
-                    )),
+                ...GameVersion.values
+                    .where((v) => v != GameVersion.all)
+                    .map((v) => DropdownMenuItem(
+                          value: v,
+                          child: Text(selectedVersion == v
+                              ? '✓ ${v.displayName}'
+                              : v.displayName),
+                        )),
               ],
               onChanged: (value) {
                 ref.read(gameVersionFilterProvider.notifier).state = value;

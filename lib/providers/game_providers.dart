@@ -197,17 +197,20 @@ class GameHistoryFilter {
 final highScoresProvider = FutureProvider.family<List<HighScore>, GameVersion?>(
     (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getHighScores(gameVersion: gameVersion);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getHighScores(gameVersion: version);
 });
 
 final databaseStatsProvider =
     FutureProvider.family<Map<String, int>, GameVersion?>(
         (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
-  return await db.getDatabaseStats(gameVersion: gameVersion);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getDatabaseStats(gameVersion: version);
 });
 
-final gameVersionFilterProvider = StateProvider<GameVersion?>((ref) => null);
+final gameVersionFilterProvider =
+    StateProvider<GameVersion?>((ref) => GameVersion.all);
 
 final gameDetailsProvider =
     FutureProvider.family<GameSession?, String>((ref, uuid) async {
@@ -222,43 +225,60 @@ final gameDetailsByIdProvider =
 });
 
 final gamesPerMonthProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getGamesPerMonth(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getGamesPerMonth(
+      months: timeRange.months, gameVersion: version);
 });
 
 final averageScoresProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getAverageScoresByPlayerCount(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getAverageScoresByPlayerCount(
+      months: timeRange.months, gameVersion: version);
 });
 
 final topPlayersProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getTopPlayers(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getTopPlayers(months: timeRange.months, gameVersion: version);
 });
 
 final scoreDistributionProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getScoreDistribution(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getScoreDistribution(
+      months: timeRange.months, gameVersion: version);
 });
 
 final averageScoreByPositionProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getAverageScoreByPlayerPosition(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getAverageScoreByPlayerPosition(
+      months: timeRange.months, gameVersion: version);
 });
 
 final winPercentageByPlayerProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.family<List<Map<String, dynamic>>, GameVersion?>(
+        (ref, gameVersion) async {
   final db = ref.watch(databaseServiceProvider);
   final timeRange = ref.watch(statsTimeRangeProvider);
-  return await db.getWinPercentageByPlayer(months: timeRange.months);
+  final version = gameVersion == GameVersion.all ? null : gameVersion;
+  return await db.getWinPercentageByPlayer(
+      months: timeRange.months, gameVersion: version);
 });

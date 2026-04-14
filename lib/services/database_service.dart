@@ -563,13 +563,18 @@ class DatabaseService {
     await db.delete('high_scores');
   }
 
-  Future<List<Map<String, dynamic>>> getGamesPerMonth({int? months}) async {
+  Future<List<Map<String, dynamic>>> getGamesPerMonth(
+      {int? months, GameVersion? gameVersion}) async {
     final db = await database;
 
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND created_at >= datetime('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND game_version = ?';
+      args.add(gameVersion.id);
     }
 
     // Extract date from the non-standard format (takes first 19 chars: "YYYY-MM-DD HH:MM:SS")
@@ -582,19 +587,21 @@ class DatabaseService {
       GROUP BY strftime('%Y-%m', substr(created_at, 1, 19))
       ORDER BY month ASC
     ''';
-    print('Query: $query');
     final results = await db.rawQuery(query, args);
-    print('Results: $results');
     return results;
   }
 
   Future<List<Map<String, dynamic>>> getAverageScoresByPlayerCount(
-      {int? months}) async {
+      {int? months, GameVersion? gameVersion}) async {
     final db = await database;
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND created_at >= datetime('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND game_version = ?';
+      args.add(gameVersion.id);
     }
     final query = '''
       SELECT 
@@ -611,12 +618,16 @@ class DatabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getTopPlayers(
-      {int limit = 10, int? months}) async {
+      {int limit = 10, int? months, GameVersion? gameVersion}) async {
     final db = await database;
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND g.game_version = ?';
+      args.add(gameVersion.id);
     }
     final result = await db.rawQuery('''
       SELECT 
@@ -635,12 +646,16 @@ class DatabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getAverageScoreByPlayerPosition(
-      {int? months}) async {
+      {int? months, GameVersion? gameVersion}) async {
     final db = await database;
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND g.game_version = ?';
+      args.add(gameVersion.id);
     }
     final result = await db.rawQuery('''
       SELECT 
@@ -660,12 +675,22 @@ class DatabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getWinPercentageByPlayer(
-      {int? months}) async {
+      {int? months, GameVersion? gameVersion}) async {
     final db = await database;
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND g.game_version = ?';
+      args.add(gameVersion.id);
+    }
+    String versionWhereClause = '';
+    List<dynamic> versionArgs = [];
+    if (gameVersion != null) {
+      versionWhereClause = 'AND g2.game_version = ?';
+      versionArgs.add(gameVersion.id);
     }
     final result = await db.rawQuery('''
       SELECT 
@@ -677,14 +702,14 @@ class DatabaseService {
           WHERE p2.name = p.name AND p2.final_score = (
             SELECT MAX(final_score) FROM players WHERE game_id = p2.game_id
           )
-          AND (1=1 $whereClause)
+          $versionWhereClause
         ) as wins
       FROM players p
       JOIN games g ON p.game_id = g.id
       WHERE 1=1 $whereClause
       GROUP BY p.name
       HAVING COUNT(DISTINCT p.game_id) >= 2
-    ''', args);
+    ''', [...versionArgs, ...args]);
 
     final processed = <Map<String, dynamic>>[];
     for (var row in result) {
@@ -705,12 +730,17 @@ class DatabaseService {
     return processed.take(10).toList();
   }
 
-  Future<List<Map<String, dynamic>>> getScoreDistribution({int? months}) async {
+  Future<List<Map<String, dynamic>>> getScoreDistribution(
+      {int? months, GameVersion? gameVersion}) async {
     final db = await database;
     String whereClause = '';
     List<dynamic> args = [];
     if (months != null) {
       whereClause = "AND g.created_at >= date('now', '-$months months')";
+    }
+    if (gameVersion != null) {
+      whereClause += ' AND g.game_version = ?';
+      args.add(gameVersion.id);
     }
     final result = await db.rawQuery('''
       SELECT 
