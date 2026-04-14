@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
-import '../models/game_version.dart';
 import '../providers/game_providers.dart';
 import '../theme/app_theme.dart';
+import '../widgets/score/score_display_row.dart';
 
 class ScoreCalculatorScreen extends ConsumerStatefulWidget {
   const ScoreCalculatorScreen({super.key});
@@ -158,41 +157,42 @@ class _PlayerScoreCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _ScoreInput(
+            ScoreInputRow(
               label: colorNames[0],
               color: colors[0],
               controller: controllers[0],
               onChanged: onChanged,
             ),
-            _ScoreInput(
+            ScoreInputRow(
               label: colorNames[1],
               color: colors[1],
               controller: controllers[1],
               onChanged: onChanged,
             ),
-            _ScoreInput(
+            ScoreInputRow(
               label: colorNames[2],
               color: colors[2],
               controller: controllers[2],
               onChanged: onChanged,
             ),
-            _ScoreInput(
+            ScoreInputRow(
               label: colorNames[3],
               color: colors[3],
               controller: controllers[3],
               onChanged: onChanged,
             ),
-            _ScoreInput(
+            ScoreInputRow(
               label: colorNames[4],
               color: colors[4],
               controller: controllers[4],
               onChanged: onChanged,
             ),
-            _ScoreInput(
+            ScoreInputRow(
               label: 'Foxes',
               color: AppTheme.foxColor,
               controller: controllers[5],
               onChanged: onChanged,
+              isFox: true,
             ),
             const Divider(),
             Row(
@@ -230,65 +230,6 @@ class _PlayerScoreCard extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ScoreInput extends StatelessWidget {
-  final String label;
-  final Color color;
-  final TextEditingController controller;
-  final VoidCallback onChanged;
-
-  const _ScoreInput({
-    required this.label,
-    required this.color,
-    required this.controller,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isFox = label.toLowerCase() == 'foxes';
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          if (isFox)
-            Padding(
-              padding: const EdgeInsets.all(4),
-              child: SvgPicture.asset(
-                'assets/fox.svg',
-                width: 24,
-                height: 24,
-              ),
-            )
-          else
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-            ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                hintText: '0',
-                isDense: true,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              onChanged: (_) => onChanged(),
-            ),
-          ),
-        ],
       ),
     );
   }
