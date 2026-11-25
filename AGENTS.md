@@ -3,116 +3,69 @@
 ## Project Overview
 
 - **Name:** Ganz Schön Clever Scorer
-- **Type:** Flutter Mobile Application
+- **Type:** Rust desktop application (GPUI-Kit)
 - **Purpose:** Scoring application for the dice game "Ganz Schön Clever" (That's Pretty Clever)
-- **Target Platforms:** iOS, Android, macOS, Linux
+- **Target Platform:** Desktop (Linux, macOS, Windows via GPUI)
 
 ## Tech Stack
 
-- **Framework:** Flutter 3.4.1+
-- **State Management:** Riverpod (flutter_riverpod)
-- **Navigation:** GoRouter
-- **Database:** SQLite (sqflite)
-- **Additional:** uuid, intl, path_provider
+- **Framework:** GPUI-Kit 0.7 (`gpui-kit` crate)
+- **State Management:** A single retained `App` entity; Riverpod is no longer used
+- **Navigation:** `Screen` enum stack inside `App`; GoRouter is no longer used
+- **Database:** SQLite through `rusqlite` (system SQLite); `sqflite` is no longer used
+- **Additional:** `chrono`, `regex`, `dirs`
 
 ## Key Commands
 
 ```bash
 # Run the app
-flutter run
+cargo run
 
 # Run tests
-flutter test
+cargo test
 
-# Analyze code
-flutter analyze
+# Analyze/format
+cargo clippy
+cargo fmt -- --check
 
-# Build for iOS
-flutter build ios
-
-# Build for Android
-flutter build apk
-
-# Build for macOS
-flutter build macos
+# Build release binary
+cargo build --release
 ```
 
 ## Architecture
 
-The app follows a layered architecture:
-
 ```
-lib/
-├── main.dart              # App entry point
-├── models/                # Data models
-│   ├── player.dart
-│   ├── score_sheet.dart   # Contains all 6 score areas (yellow, green, orange, purple, blue, bonus)
-│   ├── game_session.dart
-│   ├── game_summary.dart
-│   └── high_score.dart
-├── providers/             # Riverpod state management
-│   └── game_providers.dart
-├── services/              # Database service
-│   └── database_service.dart
-├── screens/               # UI screens
-│   ├── main_menu_screen.dart
-│   ├── game_setup_screen.dart
-│   ├── score_calculator_screen.dart
-│   ├── final_scores_screen.dart
-│   ├── game_history_screen.dart
-│   ├── high_scores_screen.dart
-│   ├── game_details_screen.dart
-│   └── cleanup_screen.dart
-├── router/                # GoRouter configuration
-│   └── app_router.dart
-└── theme/                 # App theming
-    └── app_theme.dart
+src/
+├── main.rs              # GPUI-Kit application bootstrap
+├── models.rs            # Score sheets, players, game sessions, summaries, statistics
+├── storage.rs           # SQLite schema, CRUD, queries, CSV/SQLite import/export
+├── theme.rs             # Colours matching the original Flutter app
+└── ui/
+    ├── app.rs           # Root App entity, screen router, shared state and inputs
+    ├── widgets.rs       # Shared buttons, cards, labels and bars
+    ├── main_menu.rs
+    ├── setup.rs
+    ├── calculator.rs
+    ├── final_scores.rs
+    ├── history.rs
+    ├── details.rs
+    ├── high_scores.rs
+    ├── cleanup.rs
+    └── stats.rs
 ```
 
 ## Database Schema
 
-- **games:** Stores game sessions (id, uuid, created_at, completed_at, player_count, winner_name, winner_score, notes)
-- **players:** Stores player scores per game (game_id, name, final_score, yellow/green/orange/purple/blue totals, fox_count, bonus)
-- **high_scores:** Leaderboard entries (game_id, player_name, score, achieved_at)
+- **games:** id, uuid, created_at, completed_at, player_count, winner_name, winner_score, notes, game_version
+- **players:** id, game_id, name, final_score, winner, yellow/green/orange/purple/blue totals, fox_count, bonus
+- **high_scores:** id, game_id, player_name, score, achieved_at
 
 ## Testing
 
-### Unit/Widget Tests
-
-- Test file: `test/widget_test.dart`
-- Run tests with: `flutter test`
-
-### Local Testing with Web Mode
-
-To test the app locally in a web browser:
-
-```bash
-# Run the app in Chrome
-flutter run -d chrome
-```
-
-The app will be available at `http://localhost:PORT` (typically http://localhost:55261).
-
-### UI Testing with Playwright CLI
-
-Use the `playwright-cli` skill to interact with the running web app for UI testing, form filling, screenshots, and data extraction.
-
-**Loading the skill:**
-
-```
-/skill playwright-cli
-```
-
-**Example workflow:**
-
-1. Start the app: `flutter run -d chrome`
-2. Load the playwright-cli skill
-3. Use playwright commands to navigate pages, fill forms, take screenshots, and verify UI behavior
-
-For more details on available commands, see the playwright-cli skill documentation.
+Unit tests live next to the logic they cover in `src/models.rs` and `src/storage.rs`. Run them with `cargo test`.
 
 ## Code Style
 
-- Uses flutter_lints for code analysis
-- Follows Flutter conventions
+- Follow standard Rust formatting (`cargo fmt`) and clippy conventions
+- Keep GPUI idioms: retained entities, `cx.notify()`, `cx.listener(...)`, `cx.subscribe_in(...)`
 - No additional comments unless explicitly requested

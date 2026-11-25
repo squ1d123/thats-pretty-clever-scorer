@@ -1,0 +1,16 @@
+[package]
+name = "ganz-clever-scorer"
+version = "1.0.0"
+edition = "2024"
+description = "A comprehensive scoring application for the dice game Ganz Schön Clever"
+license = "MIT"
+
+[dependencies]
+gpui-kit = "0.7"
+rusqlite = "0.32"
+chrono = "0.4"
+regex = "1"
+dirs = "6"
+
+[dev-dependencies]
+tempfile = "3"
