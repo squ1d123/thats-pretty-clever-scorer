@@ -23,17 +23,38 @@ A native desktop scoring application for the dice game *Ganz Schön Clever* (Tha
 
 ## Build and run
 
+With [mise](https://mise.jdx.dev/) installed, trust the project config once, then use the short task aliases:
+
+```bash
+mise trust
+mise run build   # or: mise run b
+mise run run     # or: mise run r
+mise run release # or: mise run rel
+```
+
+The raw Cargo commands still work as well:
+
 ```bash
 cargo build
 cargo run
+cargo build --release
 ```
 
-Build a release binary with `cargo build --release`; the executable is written to `target/release/ganz-clever-scorer`.
+Release binaries are written to `target/release/ganz-clever-scorer`.
 
 ## Tests
 
 ```bash
+mise run test    # or: mise run t
+mise run check   # or: mise run c — formatting, clippy and tests
+```
+
+Equivalent raw commands:
+
+```bash
 cargo test
+cargo clippy --all-targets -- -D warnings
+cargo fmt --all -- --check
 ```
 
 The suite covers the scoring rules (area scoring, bonus, winner selection) and the SQLite layer (save/load, high scores and statistics, CSV round trip).

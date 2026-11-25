@@ -1,0 +1,50 @@
+[env]
+_.path = [{ path = "~/.cargo/bin", position = "append" }]
+
+[tasks.build]
+description = "Build the debug binary"
+alias = ["b"]
+run = "cargo build"
+
+[tasks.run]
+description = "Build and run the desktop app"
+alias = ["r"]
+run = "cargo run"
+
+[tasks.release]
+description = "Build the optimized release binary"
+alias = ["rel"]
+run = "cargo build --release"
+
+[tasks.test]
+description = "Run the unit tests"
+alias = ["t"]
+run = "cargo test"
+
+[tasks.lint]
+description = "Run clippy with warnings denied"
+alias = ["l"]
+run = "cargo clippy --all-targets -- -D warnings"
+
+[tasks.fmt]
+description = "Format the Rust sources"
+alias = ["f"]
+run = "cargo fmt --all"
+
+[tasks.fmt-check]
+description = "Check Rust formatting"
+alias = ["fc"]
+run = "cargo fmt --all -- --check"
+
+[tasks.check]
+description = "Run formatting, lint and test checks in order"
+alias = ["c"]
+run = [
+    { task = "fmt-check" },
+    { task = "lint" },
+    { task = "test" },
+]
+
+[tasks.clean]
+description = "Remove Rust build artifacts"
+run = "cargo clean"
